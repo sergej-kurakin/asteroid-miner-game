@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Miner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="container">
+        <!-- LEFT PANEL - Mining Controls -->
+        <div class="panel left-panel">
+            <div class="panel-title">Mining Controls</div>
+
+            <div class="gauge-container gauge-power">
+                <div class="gauge-label">
+                    <span>Power Cell</span>
+                    <span id="power-value">100%</span>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-fill" id="power-fill" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="gauge-container gauge-laser">
+                <div class="gauge-label">
+                    <span>Mining Laser</span>
+                    <span id="laser-value">Ready</span>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-fill" id="laser-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="gauge-container gauge-hold">
+                <div class="gauge-label">
+                    <span>Hold Capacity</span>
+                    <span id="hold-value">0 / 100</span>
+                </div>
+                <div class="gauge">
+                    <div class="gauge-fill" id="hold-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="status-display">
+                <span class="status-text" id="status-text">Awaiting Asteroid Lock</span>
+            </div>
+
+            <div class="button-container">
+                <button class="btn btn-scan" id="btn-scan">Scan for Asteroid</button>
+                <button class="btn btn-mine" id="btn-mine" disabled>Begin Mining</button>
+                <button class="btn btn-abandon" id="btn-abandon" disabled>Abandon Asteroid</button>
+            </div>
+        </div>
+
+        <!-- CENTER PANEL - Asteroid View -->
+        <div class="panel center-panel">
+            <div class="panel-title">Sector View</div>
+
+            <div class="asteroid-view">
+                <div class="asteroid" id="asteroid"></div>
+                <div class="asteroid-placeholder" id="asteroid-placeholder">
+                    No Asteroid Detected<br>
+                    <span style="font-size: 11px; opacity: 0.5;">Initiate scan to locate</span>
+                </div>
+                <div class="mining-progress-container" id="mining-progress-container">
+                    <div class="mining-progress-label">Mining Progress</div>
+                    <div class="mining-progress">
+                        <div class="mining-progress-fill" id="mining-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="composition-section">
+                <div class="composition-title">Asteroid Composition</div>
+                <div class="composition-grid" id="composition-grid">
+                    <div class="composition-item" style="opacity: 0.3;">
+                        <div class="composition-element">--</div>
+                        <div class="composition-percent">--%</div>
+                    </div>
+                    <div class="composition-item" style="opacity: 0.3;">
+                        <div class="composition-element">--</div>
+                        <div class="composition-percent">--%</div>
+                    </div>
+                    <div class="composition-item" style="opacity: 0.3;">
+                        <div class="composition-element">--</div>
+                        <div class="composition-percent">--%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL - Inventory -->
+        <div class="panel right-panel">
+            <div class="panel-title">Cargo Manifest</div>
+
+            <div class="credits-display">
+                <div class="credits-label">Credits</div>
+                <div class="credits-value" id="credits-value">0</div>
+            </div>
+
+            <div class="discovery-alert" id="discovery-alert">
+                <div class="discovery-title">New Element Discovered!</div>
+                <div class="discovery-element" id="discovery-element">Fe</div>
+            </div>
+
+            <div class="inventory-section">
+                <div class="inventory-title">Inventory</div>
+                <div class="inventory-list" id="inventory-list">
+                    <div class="inventory-empty">Hold is empty</div>
+                </div>
+            </div>
+
+            <button class="btn btn-sell" id="btn-sell" disabled>Sell All Resources</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
