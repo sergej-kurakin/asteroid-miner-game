@@ -8,11 +8,13 @@ A 2D space mining incremental game built with TypeScript and HTML5.
 asteroid-miner/
 ├── game.html           # Main HTML file
 ├── game.css            # Stylesheet
-├── game.ts             # TypeScript source (edit this)
+├── src/
+│   └── game.ts         # TypeScript source (edit this)
 ├── dist/
 │   └── game.js         # Compiled TypeScript output (auto-generated)
 ├── tsconfig.json       # TypeScript configuration
 └── package.json        # NPM scripts
+└── build.js            # esbuild TS to JS Config
 ```
 
 ## Development Workflow
@@ -21,10 +23,16 @@ asteroid-miner/
 
 ```bash
 # Install TypeScript (if needed)
-npm install -g typescript
+npm install -g typescript esbuild
 
 # Or install dependencies locally
 npm install
+```
+
+### Build TypeScript into JavaScript
+
+```bash
+node build.js
 ```
 
 ### Build Commands

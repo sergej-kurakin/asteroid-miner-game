@@ -7,10 +7,16 @@
     "watch": "tsc --watch",
     "dev": "tsc --watch"
   },
-  "keywords": ["game", "mining", "typescript", "incremental"],
+  "keywords": [
+    "game",
+    "mining",
+    "typescript",
+    "incremental"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "esbuild": "^0.27.2"
   }
 }

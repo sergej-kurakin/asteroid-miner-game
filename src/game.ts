@@ -2,65 +2,12 @@
 // TYPE DEFINITIONS
 // ========================================
 
-interface ElementData {
-    name: string;
-    price: number;
-}
-
-interface ShipData {
-    id: number;
-    name: string;
-    holdCapacity: number;
-    powerCell: number;
-    miningTime: number;
-    toolSlots: number;
-    cost: number;
-    special: string;
-}
-
-interface CompositionRange {
-    min: number;
-    max: number;
-}
-
-interface AsteroidComposition {
-    [element: string]: number;
-}
-
-interface Asteroid {
-    type: string;
-    size: string;
-    composition: AsteroidComposition;
-    totalYield: number;
-}
-
-interface GameState {
-    credits: number;
-    current_ship_level: number;
-    discovered_elements: string[];
-    inventory: { [element: string]: number };
-    hold_capacity: number;
-    hold_used: number;
-    asteroid: Asteroid | null;
-    is_mining: boolean;
-    mining_progress: number;
-    power: number;
-}
-
-interface Config {
-    elements: { [symbol: string]: ElementData };
-    ironNickelComposition: {
-        Fe: CompositionRange;
-        Ni: CompositionRange;
-        Co: CompositionRange;
-    };
-    miningTime: number;
-    yieldMin: number;
-    yieldMax: number;
-    holdCapacity: number;
-    alertDuration: number;
-    autoSaveInterval: number;
-}
+import type { Asteroid, AsteroidComposition } from './asteroids/interfaces';
+import type { ShipData } from './ships/interfaces';
+import type { Config } from './config/interfaces';
+import type { GameState } from './gamestate/interfaces';
+import { SHIPS } from './ships/ships';
+import { CONFIG } from './config/config';
 
 interface DOMElements {
     powerValue: HTMLElement;
@@ -93,97 +40,6 @@ interface SaveData {
     inventory: { [element: string]: number };
     hold_used: number;
 }
-
-// ========================================
-// CONFIGURATION
-// ========================================
-const CONFIG: Config = {
-    // Element data with prices
-    elements: {
-        Fe: { name: 'Iron', price: 50 },
-        Ni: { name: 'Nickel', price: 150 },
-        Co: { name: 'Cobalt', price: 200 },
-        O: { name: 'Oxygen', price: 20 },
-        Si: { name: 'Silicon', price: 40 },
-        Mg: { name: 'Magnesium', price: 80 },
-        S: { name: 'Sulfur', price: 60 },
-        Cr: { name: 'Chromium', price: 180 },
-        Mn: { name: 'Manganese', price: 120 }
-    },
-
-    // Iron-Nickel asteroid composition (percentages)
-    ironNickelComposition: {
-        Fe: { min: 88, max: 92 },
-        Ni: { min: 5, max: 8 },
-        Co: { min: 1, max: 2 }
-    },
-
-    // Mining settings
-    miningTime: 2500, // ms
-    yieldMin: 80,
-    yieldMax: 120,
-    holdCapacity: 100,
-
-    // UI settings
-    alertDuration: 3000, // ms
-    autoSaveInterval: 30000 // ms
-};
-
-// ========================================
-// SHIP DEFINITIONS
-// ========================================
-const SHIPS: ShipData[] = [
-    {
-        id: 1,
-        name: 'Scout Class',
-        holdCapacity: 100,
-        powerCell: 100,
-        miningTime: 3000,
-        toolSlots: 1,
-        cost: 0,
-        special: 'Can mine small asteroids only'
-    },
-    {
-        id: 2,
-        name: 'Prospector Class',
-        holdCapacity: 150,
-        powerCell: 120,
-        miningTime: 2500,
-        toolSlots: 2,
-        cost: 2000,
-        special: 'Improved mining efficiency'
-    },
-    {
-        id: 3,
-        name: 'Harvester Class',
-        holdCapacity: 250,
-        powerCell: 150,
-        miningTime: 2000,
-        toolSlots: 3,
-        cost: 8000,
-        special: 'Enhanced cargo capacity'
-    },
-    {
-        id: 4,
-        name: 'Industrial Class',
-        holdCapacity: 400,
-        powerCell: 180,
-        miningTime: 1500,
-        toolSlots: 3,
-        cost: 25000,
-        special: 'Heavy-duty operations'
-    },
-    {
-        id: 5,
-        name: 'Titan Class',
-        holdCapacity: 600,
-        powerCell: 200,
-        miningTime: 1000,
-        toolSlots: 4,
-        cost: 75000,
-        special: 'Ultimate mining vessel'
-    }
-];
 
 // ========================================
 // GAME STATE
