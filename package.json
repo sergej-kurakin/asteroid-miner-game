@@ -1,0 +1,16 @@
+{
+  "name": "asteroid-miner",
+  "version": "1.0.0",
+  "description": "2D space mining incremental game built with TypeScript",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["game", "mining", "typescript", "incremental"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
