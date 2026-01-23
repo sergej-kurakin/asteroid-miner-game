@@ -371,6 +371,144 @@ body::before {
     text-shadow: 0 0 20px var(--primary);
 }
 
+.ship-section {
+    margin-bottom: 20px;
+}
+
+.ship-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    color: var(--primary);
+}
+
+.ship-current {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--primary);
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.ship-level {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(0, 255, 136, 0.6);
+    margin-bottom: 3px;
+}
+
+.ship-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    text-shadow: 0 0 10px var(--primary);
+    margin-bottom: 10px;
+}
+
+.ship-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ship-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.stat-label {
+    color: rgba(0, 255, 136, 0.6);
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+.stat-value {
+    color: var(--primary);
+    font-family: 'Space Mono', monospace;
+}
+
+.ship-upgrade {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.upgrade-arrow {
+    text-align: center;
+    color: var(--gold);
+    font-size: 18px;
+    margin: 5px 0;
+}
+
+.ship-next {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.ship-next .ship-name {
+    font-size: 14px;
+    color: var(--gold);
+    text-shadow: 0 0 10px var(--gold);
+}
+
+.ship-next .ship-stats {
+    margin-top: 8px;
+}
+
+.ship-next .stat-label {
+    color: rgba(255, 200, 0, 0.6);
+}
+
+.ship-next .stat-value {
+    color: var(--gold);
+}
+
+.btn-upgrade-ship {
+    width: 100%;
+    font-size: 12px;
+    padding: 12px;
+}
+
+.btn-upgrade-ship.affordable {
+    color: var(--gold);
+    border-color: var(--gold);
+    background: rgba(255, 200, 0, 0.1);
+}
+
+.btn-upgrade-ship.affordable:not(:disabled):hover {
+    background: rgba(255, 200, 0, 0.25);
+    box-shadow: 0 0 20px var(--gold);
+}
+
+.btn-upgrade-ship.unaffordable {
+    color: rgba(255, 200, 0, 0.3);
+    border-color: rgba(255, 200, 0, 0.3);
+}
+
+.ship-max-level {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+}
+
+.max-level-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+}
+
 .discovery-alert {
     background: rgba(255, 200, 0, 0.1);
     border: 2px solid var(--gold);

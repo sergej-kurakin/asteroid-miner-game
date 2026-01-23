@@ -7,6 +7,17 @@ interface ElementData {
     price: number;
 }
 
+interface ShipData {
+    id: number;
+    name: string;
+    holdCapacity: number;
+    powerCell: number;
+    miningTime: number;
+    toolSlots: number;
+    cost: number;
+    special: string;
+}
+
 interface CompositionRange {
     min: number;
     max: number;
@@ -25,6 +36,7 @@ interface Asteroid {
 
 interface GameState {
     credits: number;
+    current_ship_level: number;
     discovered_elements: string[];
     inventory: { [element: string]: number };
     hold_capacity: number;
@@ -71,10 +83,12 @@ interface DOMElements {
     discoveryElement: HTMLElement;
     inventoryList: HTMLElement;
     btnSell: HTMLButtonElement;
+    shipInfo: HTMLElement;
 }
 
 interface SaveData {
     credits: number;
+    current_ship_level: number;
     discovered_elements: string[];
     inventory: { [element: string]: number };
     hold_used: number;
@@ -116,13 +130,70 @@ const CONFIG: Config = {
 };
 
 // ========================================
+// SHIP DEFINITIONS
+// ========================================
+const SHIPS: ShipData[] = [
+    {
+        id: 1,
+        name: 'Scout Class',
+        holdCapacity: 100,
+        powerCell: 100,
+        miningTime: 3000,
+        toolSlots: 1,
+        cost: 0,
+        special: 'Can mine small asteroids only'
+    },
+    {
+        id: 2,
+        name: 'Prospector Class',
+        holdCapacity: 150,
+        powerCell: 120,
+        miningTime: 2500,
+        toolSlots: 2,
+        cost: 2000,
+        special: 'Improved mining efficiency'
+    },
+    {
+        id: 3,
+        name: 'Harvester Class',
+        holdCapacity: 250,
+        powerCell: 150,
+        miningTime: 2000,
+        toolSlots: 3,
+        cost: 8000,
+        special: 'Enhanced cargo capacity'
+    },
+    {
+        id: 4,
+        name: 'Industrial Class',
+        holdCapacity: 400,
+        powerCell: 180,
+        miningTime: 1500,
+        toolSlots: 3,
+        cost: 25000,
+        special: 'Heavy-duty operations'
+    },
+    {
+        id: 5,
+        name: 'Titan Class',
+        holdCapacity: 600,
+        powerCell: 200,
+        miningTime: 1000,
+        toolSlots: 4,
+        cost: 75000,
+        special: 'Ultimate mining vessel'
+    }
+];
+
+// ========================================
 // GAME STATE
 // ========================================
 let gameState: GameState = {
     credits: 0,
+    current_ship_level: 1,
     discovered_elements: [],
     inventory: {},
-    hold_capacity: CONFIG.holdCapacity,
+    hold_capacity: SHIPS[0].holdCapacity,
     hold_used: 0,
     asteroid: null,
     is_mining: false,
@@ -156,6 +227,7 @@ function cacheDOMElements(): void {
     DOM.discoveryElement = document.getElementById('discovery-element')!;
     DOM.inventoryList = document.getElementById('inventory-list')!;
     DOM.btnSell = document.getElementById('btn-sell') as HTMLButtonElement;
+    DOM.shipInfo = document.getElementById('ship-info')!;
 }
 
 // ========================================
@@ -167,6 +239,45 @@ function randomInRange(min: number, max: number): number {
 
 function formatNumber(num: number): string {
     return num.toLocaleString();
+}
+
+// ========================================
+// SHIP HELPER FUNCTIONS
+// ========================================
+function getCurrentShip(): ShipData {
+    return SHIPS[gameState.current_ship_level - 1];
+}
+
+function getNextShip(): ShipData | null {
+    if (gameState.current_ship_level >= SHIPS.length) return null;
+    return SHIPS[gameState.current_ship_level];
+}
+
+function canAffordShipUpgrade(): boolean {
+    const nextShip = getNextShip();
+    return nextShip !== null && gameState.credits >= nextShip.cost;
+}
+
+function upgradeShip(): void {
+    const nextShip = getNextShip();
+    if (!nextShip || gameState.credits < nextShip.cost) return;
+
+    gameState.credits -= nextShip.cost;
+    gameState.current_ship_level = nextShip.id;
+
+    // Update hold capacity proportionally
+    const currentPercent = gameState.hold_used / gameState.hold_capacity;
+    gameState.hold_capacity = nextShip.holdCapacity;
+    gameState.hold_used = Math.min(
+        Math.floor(currentPercent * gameState.hold_capacity),
+        gameState.hold_capacity
+    );
+
+    updateStatus(`Upgraded to ${nextShip.name}!`);
+    renderCredits();
+    renderShipInfo();
+    renderGauges();
+    saveGame();
 }
 
 // ========================================
@@ -265,6 +376,74 @@ function updateButtonStates(): void {
     DOM.btnScan!.disabled = gameState.is_mining || gameState.asteroid !== null;
     DOM.btnMine!.disabled = gameState.is_mining || gameState.asteroid === null;
     DOM.btnAbandon!.disabled = gameState.is_mining || gameState.asteroid === null;
+}
+
+function renderShipInfo(): void {
+    const currentShip = getCurrentShip();
+    const nextShip = getNextShip();
+
+    let html = `
+        <div class="ship-current">
+            <div class="ship-level">Level ${currentShip.id}</div>
+            <div class="ship-name">${currentShip.name}</div>
+            <div class="ship-stats">
+                <div class="ship-stat">
+                    <span class="stat-label">Hold:</span>
+                    <span class="stat-value">${currentShip.holdCapacity} units</span>
+                </div>
+                <div class="ship-stat">
+                    <span class="stat-label">Speed:</span>
+                    <span class="stat-value">${(currentShip.miningTime / 1000).toFixed(1)}s</span>
+                </div>
+                <div class="ship-stat">
+                    <span class="stat-label">Slots:</span>
+                    <span class="stat-value">${currentShip.toolSlots}</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (nextShip) {
+        const canAfford = gameState.credits >= nextShip.cost;
+        html += `
+            <div class="ship-upgrade">
+                <div class="upgrade-arrow">▼</div>
+                <div class="ship-next">
+                    <div class="ship-name">${nextShip.name}</div>
+                    <div class="ship-stats">
+                        <div class="ship-stat">
+                            <span class="stat-label">Hold:</span>
+                            <span class="stat-value">${nextShip.holdCapacity}</span>
+                        </div>
+                        <div class="ship-stat">
+                            <span class="stat-label">Speed:</span>
+                            <span class="stat-value">${(nextShip.miningTime / 1000).toFixed(1)}s</span>
+                        </div>
+                        <div class="ship-stat">
+                            <span class="stat-label">Slots:</span>
+                            <span class="stat-value">${nextShip.toolSlots}</span>
+                        </div>
+                    </div>
+                </div>
+                <button
+                    class="btn btn-upgrade-ship ${canAfford ? 'affordable' : 'unaffordable'}"
+                    id="btn-upgrade-ship"
+                    ${!canAfford ? 'disabled' : ''}
+                >
+                    Upgrade - ${formatNumber(nextShip.cost)} cr
+                </button>
+            </div>
+        `;
+    } else {
+        html += `<div class="ship-max-level"><div class="max-level-text">Maximum Ship Level Reached</div></div>`;
+    }
+
+    DOM.shipInfo!.innerHTML = html;
+
+    const btnUpgrade = document.getElementById('btn-upgrade-ship') as HTMLButtonElement;
+    if (btnUpgrade) {
+        btnUpgrade.addEventListener('click', upgradeShip);
+    }
 }
 
 // ========================================
@@ -384,7 +563,7 @@ function updateMiningProgress(currentTime: number): void {
     if (!gameState.is_mining) return;
 
     const elapsed = currentTime - miningStartTime!;
-    gameState.mining_progress = Math.min(elapsed / CONFIG.miningTime, 1);
+    gameState.mining_progress = Math.min(elapsed / getCurrentShip().miningTime, 1);
 
     (DOM.miningProgressFill as HTMLElement).style.width = `${gameState.mining_progress * 100}%`;
     renderGauges();
@@ -474,6 +653,7 @@ function sellResources(): void {
 function saveGame(): void {
     const saveData: SaveData = {
         credits: gameState.credits,
+        current_ship_level: gameState.current_ship_level,
         discovered_elements: gameState.discovered_elements,
         inventory: gameState.inventory,
         hold_used: gameState.hold_used
@@ -492,9 +672,15 @@ function loadGame(): boolean {
         if (saveData) {
             const data: SaveData = JSON.parse(saveData);
             gameState.credits = data.credits || 0;
+            gameState.current_ship_level = data.current_ship_level || 1;
             gameState.discovered_elements = data.discovered_elements || [];
             gameState.inventory = data.inventory || {};
             gameState.hold_used = data.hold_used || 0;
+
+            // Update hold capacity based on loaded ship level
+            const loadedShip = SHIPS[gameState.current_ship_level - 1];
+            gameState.hold_capacity = loadedShip.holdCapacity;
+
             return true;
         }
     } catch (e) {
@@ -523,6 +709,7 @@ function init(): void {
     renderCredits();
     renderInventory();
     renderComposition();
+    renderShipInfo();
     updateButtonStates();
 
     // Auto-save interval
