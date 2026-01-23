@@ -8,6 +8,7 @@ import type { Config } from './config/interfaces';
 import type { GameState } from './gamestate/interfaces';
 import { SHIPS } from './ships/ships';
 import { CONFIG } from './config/config';
+import { saveGameState, loadGameState } from './persistence';
 
 interface DOMElements {
     powerValue: HTMLElement;
@@ -31,14 +32,6 @@ interface DOMElements {
     inventoryList: HTMLElement;
     btnSell: HTMLButtonElement;
     shipInfo: HTMLElement;
-}
-
-interface SaveData {
-    credits: number;
-    current_ship_level: number;
-    discovered_elements: string[];
-    inventory: { [element: string]: number };
-    hold_used: number;
 }
 
 // ========================================
@@ -133,7 +126,7 @@ function upgradeShip(): void {
     renderCredits();
     renderShipInfo();
     renderGauges();
-    saveGame();
+    saveGameState(gameState);
 }
 
 // ========================================
@@ -391,7 +384,7 @@ function scanAsteroid(): void {
     updateStatus('Asteroid Locked');
     renderComposition();
     updateButtonStates();
-    saveGame();
+    saveGameState(gameState);
 }
 
 let miningStartTime: number | null = null;
@@ -476,7 +469,7 @@ function completeMining(): void {
     renderInventory();
     renderComposition();
     updateButtonStates();
-    saveGame();
+    saveGameState(gameState);
 }
 
 function sellResources(): void {
@@ -499,50 +492,8 @@ function sellResources(): void {
         renderCredits();
         renderInventory();
         renderGauges();
-        saveGame();
+        saveGameState(gameState);
     }
-}
-
-// ========================================
-// SAVE/LOAD
-// ========================================
-function saveGame(): void {
-    const saveData: SaveData = {
-        credits: gameState.credits,
-        current_ship_level: gameState.current_ship_level,
-        discovered_elements: gameState.discovered_elements,
-        inventory: gameState.inventory,
-        hold_used: gameState.hold_used
-    };
-
-    try {
-        localStorage.setItem('asteroidMiner', JSON.stringify(saveData));
-    } catch (e) {
-        console.error('Failed to save game:', e);
-    }
-}
-
-function loadGame(): boolean {
-    try {
-        const saveData = localStorage.getItem('asteroidMiner');
-        if (saveData) {
-            const data: SaveData = JSON.parse(saveData);
-            gameState.credits = data.credits || 0;
-            gameState.current_ship_level = data.current_ship_level || 1;
-            gameState.discovered_elements = data.discovered_elements || [];
-            gameState.inventory = data.inventory || {};
-            gameState.hold_used = data.hold_used || 0;
-
-            // Update hold capacity based on loaded ship level
-            const loadedShip = SHIPS[gameState.current_ship_level - 1];
-            gameState.hold_capacity = loadedShip.holdCapacity;
-
-            return true;
-        }
-    } catch (e) {
-        console.error('Failed to load game:', e);
-    }
-    return false;
 }
 
 // ========================================
@@ -552,7 +503,7 @@ function init(): void {
     cacheDOMElements();
 
     // Load saved game
-    loadGame();
+    gameState = loadGameState();
 
     // Attach event listeners
     DOM.btnScan!.addEventListener('click', scanAsteroid);
@@ -569,7 +520,7 @@ function init(): void {
     updateButtonStates();
 
     // Auto-save interval
-    setInterval(saveGame, CONFIG.autoSaveInterval);
+    setInterval(() => saveGameState(gameState), CONFIG.autoSaveInterval);
 
     console.log('Asteroid Miner initialized');
 }
