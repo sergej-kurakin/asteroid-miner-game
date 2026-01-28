@@ -37,7 +37,28 @@ interface DOMElements {
 // ========================================
 // GAME STATE
 // ========================================
-let gameState: GameState = {
+
+function updateUIOnChange(prop: string) {
+    switch (prop) {
+        case 'credits':
+            renderCredits();
+            canAffordShipUpgrade();
+            break;
+        case 'hold_used':
+        case 'hold_capacity':
+            renderGauges();
+            renderInventory();
+            break;
+        case 'asteroid':
+            renderComposition();
+            break;
+        case 'current_ship_level':
+            renderShipInfo();
+            break;
+    }
+}
+
+let gameState = new Proxy<GameState>({
     credits: 0,
     current_ship_level: 1,
     discovered_elements: [],
@@ -48,7 +69,13 @@ let gameState: GameState = {
     is_mining: false,
     mining_progress: 0,
     power: 100
-};
+}, {
+    set(target, prop, value) {
+        (target as any)[prop] = value;
+        updateUIOnChange(prop as string);
+        return true;
+    }
+});
 
 // ========================================
 // DOM CACHE
