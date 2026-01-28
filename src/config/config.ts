@@ -14,14 +14,7 @@ export const CONFIG: Config = {
         Mn: { name: 'Manganese', price: 120 }
     },
 
-    // Iron-Nickel asteroid composition (percentages)
-    ironNickelComposition: {
-        Fe: { min: 88, max: 92 },
-        Ni: { min: 5, max: 8 },
-        Co: { min: 1, max: 2 }
-    },
-
-    // Mining settings
+    // Mining settings (fallbacks)
     miningTime: 2500, // ms
     yieldMin: 80,
     yieldMax: 120,

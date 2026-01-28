@@ -2,9 +2,8 @@
 // TYPE DEFINITIONS
 // ========================================
 
-import type { Asteroid, AsteroidComposition } from './asteroids/interfaces';
+import { generateAsteroid } from './asteroids';
 import type { ShipData } from './ships/interfaces';
-import type { Config } from './config/interfaces';
 import type { GameState } from './gamestate/interfaces';
 import { SHIPS } from './ships/ships';
 import { CONFIG } from './config/config';
@@ -109,10 +108,6 @@ function cacheDOMElements(): void {
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
-function randomInRange(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 function formatNumber(num: number): string {
     return num.toLocaleString();
 }
@@ -371,38 +366,8 @@ function abandonAsteroid(): void {
 function scanAsteroid(): void {
     if (gameState.is_mining || gameState.asteroid !== null) return;
 
-    // Generate Iron-Nickel asteroid
-    const composition: AsteroidComposition = {};
-    let remainingPercent = 100;
-
-    // Fe percentage
-    const fePercent = randomInRange(
-        CONFIG.ironNickelComposition.Fe.min,
-        CONFIG.ironNickelComposition.Fe.max
-    );
-    composition.Fe = fePercent;
-    remainingPercent -= fePercent;
-
-    // Ni percentage
-    const niPercent = randomInRange(
-        CONFIG.ironNickelComposition.Ni.min,
-        Math.min(CONFIG.ironNickelComposition.Ni.max, remainingPercent - 1)
-    );
-    composition.Ni = niPercent;
-    remainingPercent -= niPercent;
-
-    // Co gets the rest
-    composition.Co = remainingPercent;
-
-    // Total yield
-    const totalYield = randomInRange(CONFIG.yieldMin, CONFIG.yieldMax);
-
-    gameState.asteroid = {
-        type: 'iron_nickel',
-        size: 'small',
-        composition,
-        totalYield
-    };
+    // Generate asteroid based on current ship level
+    gameState.asteroid = generateAsteroid(gameState.current_ship_level);
 
     // Update UI
     DOM.asteroid!.classList.add('visible');
@@ -415,7 +380,6 @@ function scanAsteroid(): void {
 }
 
 let miningStartTime: number | null = null;
-let miningAnimationId: number | null = null;
 
 function startMining(): void {
     if (gameState.is_mining || !gameState.asteroid) return;
@@ -432,14 +396,15 @@ function startMining(): void {
     renderGauges();
 
     // Start animation loop
-    miningAnimationId = requestAnimationFrame(updateMiningProgress);
+    requestAnimationFrame(updateMiningProgress);
 }
 
 function updateMiningProgress(currentTime: number): void {
     if (!gameState.is_mining) return;
 
     const elapsed = currentTime - miningStartTime!;
-    gameState.mining_progress = Math.min(elapsed / getCurrentShip().miningTime, 1);
+    const miningTime = gameState.asteroid?.miningTime ?? getCurrentShip().miningTime;
+    gameState.mining_progress = Math.min(elapsed / miningTime, 1);
 
     (DOM.miningProgressFill as HTMLElement).style.width = `${gameState.mining_progress * 100}%`;
     renderGauges();
@@ -447,7 +412,7 @@ function updateMiningProgress(currentTime: number): void {
     if (gameState.mining_progress >= 1) {
         completeMining();
     } else {
-        miningAnimationId = requestAnimationFrame(updateMiningProgress);
+        requestAnimationFrame(updateMiningProgress);
     }
 }
 
