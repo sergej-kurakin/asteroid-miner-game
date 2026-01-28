@@ -3,9 +3,9 @@
 // ========================================
 
 import { generateAsteroid } from './asteroids';
-import type { ShipData } from './ships/interfaces';
+import type { ShipData } from './ships';
 import type { GameState } from './gamestate/interfaces';
-import { SHIPS } from './ships/ships';
+import { getShipByLevel, getNextShip, canAffordShip, getInitialShip } from './ships';
 import { CONFIG } from './config/config';
 import { saveGameState, loadGameState } from './persistence';
 
@@ -62,7 +62,7 @@ let gameState = new Proxy<GameState>({
     current_ship_level: 1,
     discovered_elements: [],
     inventory: {},
-    hold_capacity: SHIPS[0].holdCapacity,
+    hold_capacity: getInitialShip().holdCapacity,
     hold_used: 0,
     asteroid: null,
     is_mining: false,
@@ -116,21 +116,20 @@ function formatNumber(num: number): string {
 // SHIP HELPER FUNCTIONS
 // ========================================
 function getCurrentShip(): ShipData {
-    return SHIPS[gameState.current_ship_level - 1];
+    return getShipByLevel(gameState.current_ship_level);
 }
 
-function getNextShip(): ShipData | null {
-    if (gameState.current_ship_level >= SHIPS.length) return null;
-    return SHIPS[gameState.current_ship_level];
+function getNextShipForUpgrade(): ShipData | undefined {
+    return getNextShip(gameState.current_ship_level);
 }
 
 function canAffordShipUpgrade(): boolean {
-    const nextShip = getNextShip();
-    return nextShip !== null && gameState.credits >= nextShip.cost;
+    const nextShip = getNextShipForUpgrade();
+    return nextShip !== undefined && canAffordShip(gameState.credits, nextShip);
 }
 
 function upgradeShip(): void {
-    const nextShip = getNextShip();
+    const nextShip = getNextShipForUpgrade();
     if (!nextShip || gameState.credits < nextShip.cost) return;
 
     gameState.credits -= nextShip.cost;
@@ -251,7 +250,7 @@ function updateButtonStates(): void {
 
 function renderShipInfo(): void {
     const currentShip = getCurrentShip();
-    const nextShip = getNextShip();
+    const nextShip = getNextShipForUpgrade();
 
     let html = `
         <div class="ship-current">
