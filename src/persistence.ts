@@ -2,7 +2,7 @@
 // Handles saving and loading game state to localStorage
 
 import type { GameState } from './gamestate/interfaces';
-import { SHIPS } from './ships/ships';
+import { getShipByLevel, getInitialShip } from './ships';
 
 export interface SaveData {
     credits: number;
@@ -35,7 +35,7 @@ export function loadGameState(): GameState {
         if (saveData) {
             const data: SaveData = JSON.parse(saveData);
             const shipLevel = data.current_ship_level || 1;
-            const holdCapacity = SHIPS[shipLevel - 1].holdCapacity;
+            const holdCapacity = getShipByLevel(shipLevel).holdCapacity;
             return {
                 credits: data.credits || 0,
                 current_ship_level: shipLevel,
@@ -58,7 +58,7 @@ export function loadGameState(): GameState {
         discovered_elements: [],
         inventory: {},
         hold_used: 0,
-        hold_capacity: SHIPS[0].holdCapacity,
+        hold_capacity: getInitialShip().holdCapacity,
         asteroid: null,
         is_mining: false,
         mining_progress: 0,

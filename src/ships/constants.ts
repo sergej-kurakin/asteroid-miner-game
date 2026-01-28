@@ -52,3 +52,6 @@ export const SHIPS: ShipData[] = [
         special: 'Ultimate mining vessel'
     }
 ];
+
+export const INITIAL_SHIP_LEVEL = 1;
+export const MAX_SHIP_LEVEL = 5;
