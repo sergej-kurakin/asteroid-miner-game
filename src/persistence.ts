@@ -2,7 +2,6 @@
 // Handles saving and loading game state to localStorage
 
 import type { GameState } from './gamestate/interfaces';
-import { getShipByLevel, getInitialShip } from './ships';
 
 export interface SaveData {
     credits: number;
@@ -10,6 +9,7 @@ export interface SaveData {
     discovered_elements: string[];
     inventory: { [element: string]: number };
     hold_used: number;
+    hold_capacity: number;
 }
 
 const STORAGE_KEY = 'asteroidMiner';
@@ -20,7 +20,8 @@ export function saveGameState(state: Readonly<GameState>): void {
         current_ship_level: state.current_ship_level,
         discovered_elements: state.discovered_elements,
         inventory: state.inventory,
-        hold_used: state.hold_used
+        hold_used: state.hold_used,
+        hold_capacity: state.hold_capacity
     };
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -34,15 +35,13 @@ export function loadGameState(): GameState {
         const saveData = localStorage.getItem(STORAGE_KEY);
         if (saveData) {
             const data: SaveData = JSON.parse(saveData);
-            const shipLevel = data.current_ship_level || 1;
-            const holdCapacity = getShipByLevel(shipLevel).holdCapacity;
             return {
                 credits: data.credits || 0,
-                current_ship_level: shipLevel,
+                current_ship_level: data.current_ship_level || 1,
                 discovered_elements: data.discovered_elements || [],
                 inventory: data.inventory || {},
                 hold_used: data.hold_used || 0,
-                hold_capacity: holdCapacity,
+                hold_capacity: data.hold_capacity || 100,
                 asteroid: null,
                 is_mining: false,
                 mining_progress: 0,
@@ -58,7 +57,7 @@ export function loadGameState(): GameState {
         discovered_elements: [],
         inventory: {},
         hold_used: 0,
-        hold_capacity: getInitialShip().holdCapacity,
+        hold_capacity: 100,
         asteroid: null,
         is_mining: false,
         mining_progress: 0,
