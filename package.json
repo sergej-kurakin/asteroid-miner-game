@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "bundle": "esbuild src/game.ts --bundle --outfile=dist/game.js --format=iife --sourcemap",
     "watch": "esbuild src/game.ts --bundle --outfile=dist/game.js --format=iife --sourcemap --watch",
-    "dev": "npm run watch"
+    "dev": "npm run watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "game",
@@ -19,7 +21,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "esbuild": "^0.27.2",
     "typescript": "^5.0.0",
-    "esbuild": "^0.27.2"
+    "vitest": "^4.0.18"
   }
 }
