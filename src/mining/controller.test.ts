@@ -254,14 +254,14 @@ describe('MiningController', () => {
             vi.advanceTimersByTime(150);
 
             const state = state$.getState();
-            // Original 10 Fe + 60% of 100 yield = 70 Fe
-            expect(state.inventory.Fe).toBe(70);
-            // 30% of 100 = 30 Ni
-            expect(state.inventory.Ni).toBe(30);
-            // 10% of 100 = 10 Co
-            expect(state.inventory.Co).toBe(10);
+            // Original 10 Fe + 60% of 90 yield = 64 Fe
+            expect(state.inventory.Fe).toBe(64);
+            // 30% of 90 = 27 Ni
+            expect(state.inventory.Ni).toBe(27);
+            // 10% of 90 = 9 Co
+            expect(state.inventory.Co).toBe(9);
             // Hold should be updated
-            expect(state.hold_used).toBe(100); // 10 original + 100 collected, capped at capacity
+            expect(state.hold_used).toBe(100); // 10 original + 90 collected, capped at capacity
         });
 
         it('should emit mining_completed event with yield', () => {
@@ -282,6 +282,59 @@ describe('MiningController', () => {
             const yield_ = (completedEvent as { type: 'mining_completed'; yield: { collected: Record<string, number>; totalAmount: number } }).yield;
             expect(yield_.totalAmount).toBe(100);
             expect(yield_.collected.Fe).toBe(60);
+        });
+
+        it('should cap yield to available hold space', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid(), // 100kg total yield
+                inventory: {},
+                hold_capacity: 100,
+                hold_used: 90 // Only 10kg space available
+            }));
+            controller = new MiningController(state$, prices);
+
+            const events: MiningEvent[] = [];
+            controller.subscribe(event => events.push(event));
+
+            controller.startMining();
+            vi.advanceTimersByTime(150);
+
+            const state = state$.getState();
+
+            // Should only collect 10kg total (scaled proportionally)
+            // Scale factor = 10/100 = 0.1
+            // Fe: floor(60 * 0.1) = 6
+            // Ni: floor(30 * 0.1) = 3
+            // Co: floor(10 * 0.1) = 1
+            expect(state.inventory.Fe).toBe(6);
+            expect(state.inventory.Ni).toBe(3);
+            expect(state.inventory.Co).toBe(1);
+            expect(state.hold_used).toBe(100); // 90 + 10 = 100
+
+            // Verify the emitted event also has capped yield
+            const completedEvent = events.find(e => e.type === 'mining_completed');
+            expect(completedEvent).toBeDefined();
+            const yield_ = (completedEvent as { type: 'mining_completed'; yield: { collected: Record<string, number>; totalAmount: number } }).yield;
+            expect(yield_.totalAmount).toBe(10);
+        });
+
+        it('should collect nothing when hold is full', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid(),
+                inventory: { Fe: 100 },
+                hold_capacity: 100,
+                hold_used: 100 // No space available
+            }));
+            controller = new MiningController(state$, prices);
+
+            controller.startMining();
+            vi.advanceTimersByTime(150);
+
+            const state = state$.getState();
+
+            // Inventory should not change
+            expect(state.inventory).toEqual({ Fe: 100 });
+            expect(state.hold_used).toBe(100);
         });
     });
 });

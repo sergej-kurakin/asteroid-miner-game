@@ -29,6 +29,10 @@ export interface ElementPrices {
 // Interface for pure calculation methods
 export interface IMiningSystem {
     calculateYield(asteroid: Asteroid): MiningYield;
+    capYieldToAvailableSpace(
+        miningYield: MiningYield,
+        availableSpace: number
+    ): MiningYield;
     calculateSellValue(
         inventory: { [element: string]: number },
         prices: ElementPrices

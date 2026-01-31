@@ -178,4 +178,84 @@ describe('MiningSystem', () => {
             expect(result).toBe(30);
         });
     });
+
+    describe('capYieldToAvailableSpace', () => {
+        it('should return unchanged yield when space is sufficient', () => {
+            const yield_ = {
+                collected: { Fe: 30, Ni: 20 },
+                totalAmount: 50
+            };
+
+            const result = system.capYieldToAvailableSpace(yield_, 100);
+
+            expect(result).toEqual(yield_);
+        });
+
+        it('should return unchanged yield when space exactly matches', () => {
+            const yield_ = {
+                collected: { Fe: 30, Ni: 20 },
+                totalAmount: 50
+            };
+
+            const result = system.capYieldToAvailableSpace(yield_, 50);
+
+            expect(result).toEqual(yield_);
+        });
+
+        it('should scale down proportionally when space is limited', () => {
+            const yield_ = {
+                collected: { Fe: 60, Ni: 30, Co: 10 },
+                totalAmount: 100
+            };
+
+            const result = system.capYieldToAvailableSpace(yield_, 50);
+
+            // Scale factor = 50/100 = 0.5
+            // Fe: floor(60 * 0.5) = 30
+            // Ni: floor(30 * 0.5) = 15
+            // Co: floor(10 * 0.5) = 5
+            expect(result.collected).toEqual({ Fe: 30, Ni: 15, Co: 5 });
+            expect(result.totalAmount).toBe(50);
+        });
+
+        it('should exclude elements that round to zero when scaled', () => {
+            const yield_ = {
+                collected: { Fe: 90, Ni: 8, Co: 2 },
+                totalAmount: 100
+            };
+
+            const result = system.capYieldToAvailableSpace(yield_, 10);
+
+            // Scale factor = 10/100 = 0.1
+            // Fe: floor(90 * 0.1) = 9
+            // Ni: floor(8 * 0.1) = 0 (excluded)
+            // Co: floor(2 * 0.1) = 0 (excluded)
+            expect(result.collected).toEqual({ Fe: 9 });
+            expect(result.totalAmount).toBe(9);
+        });
+
+        it('should return empty yield when available space is zero', () => {
+            const yield_ = {
+                collected: { Fe: 60, Ni: 30 },
+                totalAmount: 100
+            };
+
+            const result = system.capYieldToAvailableSpace(yield_, 0);
+
+            expect(result.collected).toEqual({});
+            expect(result.totalAmount).toBe(0);
+        });
+
+        it('should return empty yield when available space is negative', () => {
+            const yield_ = {
+                collected: { Fe: 60, Ni: 30 },
+                totalAmount: 100
+            };
+
+            const result = system.capYieldToAvailableSpace(yield_, -10);
+
+            expect(result.collected).toEqual({});
+            expect(result.totalAmount).toBe(0);
+        });
+    });
 });

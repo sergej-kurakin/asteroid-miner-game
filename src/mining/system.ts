@@ -22,6 +22,36 @@ export class MiningSystem implements IMiningSystem {
         return { collected, totalAmount };
     }
 
+    capYieldToAvailableSpace(
+        miningYield: MiningYield,
+        availableSpace: number
+    ): MiningYield {
+        // If available space is 0 or negative, return empty yield
+        if (availableSpace <= 0) {
+            return { collected: {}, totalAmount: 0 };
+        }
+
+        // If yield fits in available space, return unchanged
+        if (miningYield.totalAmount <= availableSpace) {
+            return miningYield;
+        }
+
+        // Scale down proportionally
+        const scaleFactor = availableSpace / miningYield.totalAmount;
+        const capped: { [element: string]: number } = {};
+        let newTotal = 0;
+
+        for (const [element, amount] of Object.entries(miningYield.collected)) {
+            const scaledAmount = Math.floor(amount * scaleFactor);
+            if (scaledAmount > 0) {
+                capped[element] = scaledAmount;
+                newTotal += scaledAmount;
+            }
+        }
+
+        return { collected: capped, totalAmount: newTotal };
+    }
+
     calculateSellValue(
         inventory: { [element: string]: number },
         prices: ElementPrices

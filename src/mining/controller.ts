@@ -117,11 +117,16 @@ export class MiningController implements IMiningController {
             this.updateIntervalId = null;
         }
 
-        const miningYield = this.system.calculateYield(state.asteroid);
+        // Calculate full yield from asteroid
+        const fullYield = this.system.calculateYield(state.asteroid);
 
-        // Check for discoveries before updating state
+        // Cap yield to available hold space
+        const availableSpace = state.hold_capacity - state.hold_used;
+        const cappedYield = this.system.capYieldToAvailableSpace(fullYield, availableSpace);
+
+        // Check for discoveries before updating state (use capped yield)
         const newDiscoveries = this.system.findNewDiscoveries(
-            miningYield.collected,
+            cappedYield.collected,
             state.discovered_elements
         );
 
@@ -130,14 +135,14 @@ export class MiningController implements IMiningController {
             this.emit({ type: 'discovery', element });
         }
 
-        // Calculate new inventory and hold
+        // Calculate new inventory and hold (use capped yield)
         const newInventory = this.system.mergeIntoInventory(
             state.inventory,
-            miningYield.collected
+            cappedYield.collected
         );
         const newHoldUsed = this.system.calculateNewHoldUsed(
             state.hold_used,
-            miningYield.totalAmount,
+            cappedYield.totalAmount,
             state.hold_capacity
         );
 
@@ -157,7 +162,7 @@ export class MiningController implements IMiningController {
 
         this.miningStartTime = null;
 
-        this.emit({ type: 'mining_completed', yield: miningYield });
+        this.emit({ type: 'mining_completed', yield: cappedYield });
     }
 
     private emit(event: MiningEvent): void {
