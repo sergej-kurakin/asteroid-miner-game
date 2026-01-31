@@ -52,6 +52,7 @@ function setupStateSubscriptions(): void {
         renderInventory();
     });
     gameState$.subscribeToProperty('hold_capacity', renderGauges);
+    gameState$.subscribeToProperty('power', renderGauges);
     gameState$.subscribeToProperty('asteroid', renderComposition);
     gameState$.subscribeToProperty('current_ship_level', renderShipInfo);
     gameState$.subscribeToProperty('inventory', renderInventory);
@@ -101,9 +102,6 @@ function handleShipUpgrade(): void {
     const result = shipController.upgrade();
     if (result.success && result.newShip) {
         updateStatus(`Upgraded to ${result.newShip.name}!`);
-        renderCredits();
-        renderShipInfo();
-        renderGauges();
         saveGameState(gameState$.getState());
     }
 }
@@ -343,12 +341,10 @@ function handleMiningEvent(event: MiningEvent): void {
             DOM.miningProgressContainer!.classList.add('visible');
             updateStatus('Mining in Progress...');
             updateButtonStates();
-            renderGauges();
             break;
 
         case 'mining_progress':
             (DOM.miningProgressFill as HTMLElement).style.width = `${event.progress * 100}%`;
-            renderGauges();
             break;
 
         case 'discovery':
@@ -361,8 +357,6 @@ function handleMiningEvent(event: MiningEvent): void {
             DOM.miningProgressContainer!.classList.remove('visible');
             (DOM.miningProgressFill as HTMLElement).style.width = '0%';
             updateStatus('Mining Complete');
-            renderGauges();
-            renderInventory();
             renderComposition();
             updateButtonStates();
             saveGameState(gameState$.getState());
@@ -378,9 +372,6 @@ function handleSellResources(): void {
     const result = miningController.sellResources();
     if (result) {
         updateStatus(`Sold for ${formatNumber(result.totalValue)} credits`);
-        renderCredits();
-        renderInventory();
-        renderGauges();
         saveGameState(gameState$.getState());
     }
 }
