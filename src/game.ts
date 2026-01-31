@@ -3,9 +3,9 @@
 // ========================================
 
 import { generateAsteroid } from './asteroids';
-import type { ShipData } from './ships';
+import type { IShipController } from './ships';
 import { type GameState, StateObserver, type Observable } from './gamestate';
-import { getShipByLevel, getNextShip, canAffordShip } from './ships';
+import { ShipController } from './ships';
 import { CONFIG } from './config/config';
 import { saveGameState, loadGameState } from './persistence';
 
@@ -38,11 +38,12 @@ interface DOMElements {
 // ========================================
 
 let gameState$: Observable<GameState>;
+let shipController: IShipController;
 
 function setupStateSubscriptions(): void {
     gameState$.subscribeToProperty('credits', () => {
         renderCredits();
-        canAffordShipUpgrade();
+        renderShipInfo();
     });
     gameState$.subscribeToProperty('hold_used', () => {
         renderGauges();
@@ -94,43 +95,15 @@ function formatNumber(num: number): string {
 // ========================================
 // SHIP HELPER FUNCTIONS
 // ========================================
-function getCurrentShip(): ShipData {
-    return getShipByLevel(gameState$.getState().current_ship_level);
-}
-
-function getNextShipForUpgrade(): ShipData | undefined {
-    return getNextShip(gameState$.getState().current_ship_level);
-}
-
-function canAffordShipUpgrade(): boolean {
-    const nextShip = getNextShipForUpgrade();
-    return nextShip !== undefined && canAffordShip(gameState$.getState().credits, nextShip);
-}
-
-function upgradeShip(): void {
-    const state = gameState$.getState();
-    const nextShip = getNextShipForUpgrade();
-    if (!nextShip || state.credits < nextShip.cost) return;
-
-    // Update hold capacity proportionally
-    const currentPercent = state.hold_used / state.hold_capacity;
-    const newHoldUsed = Math.min(
-        Math.floor(currentPercent * nextShip.holdCapacity),
-        nextShip.holdCapacity
-    );
-
-    gameState$.setState({
-        credits: state.credits - nextShip.cost,
-        current_ship_level: nextShip.id,
-        hold_capacity: nextShip.holdCapacity,
-        hold_used: newHoldUsed
-    });
-
-    updateStatus(`Upgraded to ${nextShip.name}!`);
-    renderCredits();
-    renderShipInfo();
-    renderGauges();
-    saveGameState(gameState$.getState());
+function handleShipUpgrade(): void {
+    const result = shipController.upgrade();
+    if (result.success && result.newShip) {
+        updateStatus(`Upgraded to ${result.newShip.name}!`);
+        renderCredits();
+        renderShipInfo();
+        renderGauges();
+        saveGameState(gameState$.getState());
+    }
 }
 
 // ========================================
@@ -237,8 +210,8 @@ function updateButtonStates(): void {
 }
 
 function renderShipInfo(): void {
-    const currentShip = getCurrentShip();
-    const nextShip = getNextShipForUpgrade();
+    const currentShip = shipController.getCurrentShip();
+    const nextShip = shipController.getNextShip();
     const credits = gameState$.getState().credits;
 
     let html = `
@@ -301,7 +274,7 @@ function renderShipInfo(): void {
 
     const btnUpgrade = document.getElementById('btn-upgrade-ship') as HTMLButtonElement;
     if (btnUpgrade) {
-        btnUpgrade.addEventListener('click', upgradeShip);
+        btnUpgrade.addEventListener('click', handleShipUpgrade);
     }
 }
 
@@ -399,7 +372,7 @@ function updateMiningProgress(currentTime: number): void {
     if (!state.is_mining) return;
 
     const elapsed = currentTime - miningStartTime!;
-    const miningTime = state.asteroid?.miningTime ?? getCurrentShip().miningTime;
+    const miningTime = state.asteroid?.miningTime ?? shipController.getMiningTime();
     const progress = Math.min(elapsed / miningTime, 1);
     gameState$.updateProperty('mining_progress', progress);
 
@@ -497,6 +470,9 @@ function init(): void {
     // Load saved game and create observable state
     const initialState = loadGameState();
     gameState$ = new StateObserver(initialState);
+
+    // Initialize controllers
+    shipController = new ShipController(gameState$);
 
     // Set up state subscriptions for automatic UI updates
     setupStateSubscriptions();
