@@ -14,7 +14,7 @@ export interface SaveData {
 
 const STORAGE_KEY = 'asteroidMiner';
 
-export function saveGameState(state: GameState): void {
+export function saveGameState(state: Readonly<GameState>): void {
     const saveData: SaveData = {
         credits: state.credits,
         current_ship_level: state.current_ship_level,
