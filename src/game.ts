@@ -8,6 +8,7 @@ import { type GameState, StateObserver, type Observable } from './gamestate';
 import { ShipController } from './ships';
 import { CONFIG } from './config/config';
 import { saveGameState, loadGameState } from './persistence';
+import { MiningController, type IMiningController, type MiningEvent, type ElementPrices } from './mining';
 
 interface DOMElements {
     powerValue: HTMLElement;
@@ -39,6 +40,7 @@ interface DOMElements {
 
 let gameState$: Observable<GameState>;
 let shipController: IShipController;
+let miningController: IMiningController;
 
 function setupStateSubscriptions(): void {
     gameState$.subscribeToProperty('credits', () => {
@@ -297,16 +299,6 @@ function showDiscoveryAlert(element: string): void {
     }, CONFIG.alertDuration);
 }
 
-function checkDiscovery(element: string): boolean {
-    const discovered = gameState$.getState().discovered_elements;
-    if (!discovered.includes(element)) {
-        gameState$.updateProperty('discovered_elements', [...discovered, element]);
-        showDiscoveryAlert(element);
-        return true;
-    }
-    return false;
-}
-
 // ========================================
 // GAME LOGIC
 // ========================================
@@ -344,116 +336,48 @@ function scanAsteroid(): void {
     saveGameState(gameState$.getState());
 }
 
-let miningStartTime: number | null = null;
+function handleMiningEvent(event: MiningEvent): void {
+    switch (event.type) {
+        case 'mining_started':
+            DOM.asteroid!.classList.add('mining');
+            DOM.miningProgressContainer!.classList.add('visible');
+            updateStatus('Mining in Progress...');
+            updateButtonStates();
+            renderGauges();
+            break;
 
-function startMining(): void {
-    const state = gameState$.getState();
-    if (state.is_mining || !state.asteroid) return;
+        case 'mining_progress':
+            (DOM.miningProgressFill as HTMLElement).style.width = `${event.progress * 100}%`;
+            renderGauges();
+            break;
 
-    gameState$.setState({
-        is_mining: true,
-        mining_progress: 0
-    });
-    miningStartTime = performance.now();
+        case 'discovery':
+            showDiscoveryAlert(event.element);
+            break;
 
-    DOM.asteroid!.classList.add('mining');
-    DOM.miningProgressContainer!.classList.add('visible');
-
-    updateStatus('Mining in Progress...');
-    updateButtonStates();
-    renderGauges();
-
-    // Start animation loop
-    requestAnimationFrame(updateMiningProgress);
-}
-
-function updateMiningProgress(currentTime: number): void {
-    const state = gameState$.getState();
-    if (!state.is_mining) return;
-
-    const elapsed = currentTime - miningStartTime!;
-    const miningTime = state.asteroid?.miningTime ?? shipController.getMiningTime();
-    const progress = Math.min(elapsed / miningTime, 1);
-    gameState$.updateProperty('mining_progress', progress);
-
-    (DOM.miningProgressFill as HTMLElement).style.width = `${progress * 100}%`;
-    renderGauges();
-
-    if (progress >= 1) {
-        completeMining();
-    } else {
-        requestAnimationFrame(updateMiningProgress);
+        case 'mining_completed':
+            DOM.asteroid!.classList.remove('visible', 'mining');
+            (DOM.asteroidPlaceholder as HTMLElement).style.display = 'block';
+            DOM.miningProgressContainer!.classList.remove('visible');
+            (DOM.miningProgressFill as HTMLElement).style.width = '0%';
+            updateStatus('Mining Complete');
+            renderGauges();
+            renderInventory();
+            renderComposition();
+            updateButtonStates();
+            saveGameState(gameState$.getState());
+            break;
     }
 }
 
-function completeMining(): void {
-    const state = gameState$.getState();
-    if (!state.asteroid) return;
-
-    const asteroid = state.asteroid;
-
-    // Calculate resources collected
-    let totalCollected = 0;
-    const collected: { [element: string]: number } = {};
-    const newInventory = { ...state.inventory };
-
-    for (const [element, percent] of Object.entries(asteroid.composition)) {
-        const amount = Math.round((percent / 100) * asteroid.totalYield);
-        if (amount > 0) {
-            collected[element] = amount;
-            totalCollected += amount;
-
-            // Add to inventory
-            newInventory[element] = (newInventory[element] || 0) + amount;
-
-            // Check for discovery
-            checkDiscovery(element);
-        }
-    }
-
-    // Update hold and reset mining state
-    gameState$.setState({
-        inventory: newInventory,
-        hold_used: Math.min(state.hold_used + totalCollected, state.hold_capacity),
-        is_mining: false,
-        mining_progress: 0,
-        asteroid: null
-    });
-
-    // Update UI
-    DOM.asteroid!.classList.remove('visible', 'mining');
-    (DOM.asteroidPlaceholder as HTMLElement).style.display = 'block';
-    DOM.miningProgressContainer!.classList.remove('visible');
-    (DOM.miningProgressFill as HTMLElement).style.width = '0%';
-
-    updateStatus('Mining Complete');
-    renderGauges();
-    renderInventory();
-    renderComposition();
-    updateButtonStates();
-    saveGameState(gameState$.getState());
+function handleStartMining(): void {
+    miningController.startMining();
 }
 
-function sellResources(): void {
-    const state = gameState$.getState();
-    const inventory = state.inventory;
-    let totalValue = 0;
-
-    for (const [element, amount] of Object.entries(inventory)) {
-        if (amount > 0) {
-            const price = CONFIG.elements[element].price;
-            totalValue += amount * price;
-        }
-    }
-
-    if (totalValue > 0) {
-        gameState$.setState({
-            credits: state.credits + totalValue,
-            inventory: {},
-            hold_used: 0
-        });
-
-        updateStatus(`Sold for ${formatNumber(totalValue)} credits`);
+function handleSellResources(): void {
+    const result = miningController.sellResources();
+    if (result) {
+        updateStatus(`Sold for ${formatNumber(result.totalValue)} credits`);
         renderCredits();
         renderInventory();
         renderGauges();
@@ -471,17 +395,27 @@ function init(): void {
     const initialState = loadGameState();
     gameState$ = new StateObserver(initialState);
 
+    // Build element prices map from config
+    const elementPrices: ElementPrices = {};
+    for (const [symbol, data] of Object.entries(CONFIG.elements)) {
+        elementPrices[symbol] = data.price;
+    }
+
     // Initialize controllers
     shipController = new ShipController(gameState$);
+    miningController = new MiningController(gameState$, elementPrices);
+
+    // Subscribe to mining events
+    miningController.subscribe(handleMiningEvent);
 
     // Set up state subscriptions for automatic UI updates
     setupStateSubscriptions();
 
     // Attach event listeners
     DOM.btnScan!.addEventListener('click', scanAsteroid);
-    DOM.btnMine!.addEventListener('click', startMining);
+    DOM.btnMine!.addEventListener('click', handleStartMining);
     DOM.btnAbandon!.addEventListener('click', abandonAsteroid);
-    DOM.btnSell!.addEventListener('click', sellResources);
+    DOM.btnSell!.addEventListener('click', handleSellResources);
 
     // Initial render
     renderGauges();
