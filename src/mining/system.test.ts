@@ -1,0 +1,181 @@
+import { describe, it, expect } from 'vitest';
+import { MiningSystem } from './system';
+import type { Asteroid } from '../asteroids/interfaces';
+
+describe('MiningSystem', () => {
+    const system = new MiningSystem();
+
+    describe('calculateYield', () => {
+        it('should calculate yield from asteroid composition', () => {
+            const asteroid: Asteroid = {
+                type: 'iron_nickel',
+                size: 'medium',
+                composition: { Fe: 60, Ni: 30, Co: 10 },
+                totalYield: 100,
+                miningTime: 3000,
+                visualDiameter: 80
+            };
+
+            const result = system.calculateYield(asteroid);
+
+            expect(result.collected).toEqual({ Fe: 60, Ni: 30, Co: 10 });
+            expect(result.totalAmount).toBe(100);
+        });
+
+        it('should handle rounding correctly', () => {
+            const asteroid: Asteroid = {
+                type: 'carbonaceous',
+                size: 'small',
+                composition: { Fe: 33, O: 33, Si: 34 },
+                totalYield: 10,
+                miningTime: 2000,
+                visualDiameter: 50
+            };
+
+            const result = system.calculateYield(asteroid);
+
+            // 33% of 10 = 3.3 -> rounds to 3
+            // 34% of 10 = 3.4 -> rounds to 3
+            expect(result.collected.Fe).toBe(3);
+            expect(result.collected.O).toBe(3);
+            expect(result.collected.Si).toBe(3);
+        });
+
+        it('should exclude zero amounts', () => {
+            const asteroid: Asteroid = {
+                type: 'olivine',
+                size: 'tiny',
+                composition: { Fe: 90, Co: 1 },
+                totalYield: 5,
+                miningTime: 1000,
+                visualDiameter: 30
+            };
+
+            const result = system.calculateYield(asteroid);
+
+            // 1% of 5 = 0.05 -> rounds to 0, should be excluded
+            expect(result.collected.Fe).toBe(5); // 90% of 5 = 4.5 -> rounds to 5
+            expect(result.collected.Co).toBeUndefined();
+        });
+    });
+
+    describe('calculateSellValue', () => {
+        it('should calculate total value from inventory', () => {
+            const inventory = { Fe: 10, Ni: 5 };
+            const prices = { Fe: 50, Ni: 150 };
+
+            const result = system.calculateSellValue(inventory, prices);
+
+            expect(result.totalValue).toBe(10 * 50 + 5 * 150); // 500 + 750 = 1250
+            expect(result.itemsSold).toEqual({ Fe: 10, Ni: 5 });
+        });
+
+        it('should handle zero amounts', () => {
+            const inventory = { Fe: 0, Ni: 5 };
+            const prices = { Fe: 50, Ni: 150 };
+
+            const result = system.calculateSellValue(inventory, prices);
+
+            expect(result.totalValue).toBe(750);
+            expect(result.itemsSold).toEqual({ Ni: 5 });
+        });
+
+        it('should handle missing prices as zero', () => {
+            const inventory = { Fe: 10, Unknown: 5 };
+            const prices = { Fe: 50 };
+
+            const result = system.calculateSellValue(inventory, prices);
+
+            expect(result.totalValue).toBe(500);
+            expect(result.itemsSold).toEqual({ Fe: 10, Unknown: 5 });
+        });
+
+        it('should return empty result for empty inventory', () => {
+            const result = system.calculateSellValue({}, { Fe: 50 });
+
+            expect(result.totalValue).toBe(0);
+            expect(result.itemsSold).toEqual({});
+        });
+    });
+
+    describe('findNewDiscoveries', () => {
+        it('should find elements not yet discovered', () => {
+            const collected = { Fe: 10, Ni: 5, Co: 2 };
+            const discovered = ['Fe'];
+
+            const result = system.findNewDiscoveries(collected, discovered);
+
+            expect(result).toContain('Ni');
+            expect(result).toContain('Co');
+            expect(result).not.toContain('Fe');
+        });
+
+        it('should return empty array when all elements are discovered', () => {
+            const collected = { Fe: 10, Ni: 5 };
+            const discovered = ['Fe', 'Ni', 'Co'];
+
+            const result = system.findNewDiscoveries(collected, discovered);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return all elements when none are discovered', () => {
+            const collected = { Fe: 10, Ni: 5 };
+            const discovered: string[] = [];
+
+            const result = system.findNewDiscoveries(collected, discovered);
+
+            expect(result).toContain('Fe');
+            expect(result).toContain('Ni');
+        });
+    });
+
+    describe('mergeIntoInventory', () => {
+        it('should add collected amounts to existing inventory', () => {
+            const current = { Fe: 10, Ni: 5 };
+            const collected = { Fe: 5, Co: 3 };
+
+            const result = system.mergeIntoInventory(current, collected);
+
+            expect(result).toEqual({ Fe: 15, Ni: 5, Co: 3 });
+        });
+
+        it('should not mutate original inventory', () => {
+            const current = { Fe: 10 };
+            const collected = { Fe: 5 };
+
+            system.mergeIntoInventory(current, collected);
+
+            expect(current.Fe).toBe(10);
+        });
+
+        it('should handle empty current inventory', () => {
+            const current = {};
+            const collected = { Fe: 10, Ni: 5 };
+
+            const result = system.mergeIntoInventory(current, collected);
+
+            expect(result).toEqual({ Fe: 10, Ni: 5 });
+        });
+    });
+
+    describe('calculateNewHoldUsed', () => {
+        it('should add collected amount to current used', () => {
+            const result = system.calculateNewHoldUsed(50, 30, 100);
+
+            expect(result).toBe(80);
+        });
+
+        it('should cap at capacity', () => {
+            const result = system.calculateNewHoldUsed(80, 50, 100);
+
+            expect(result).toBe(100);
+        });
+
+        it('should handle zero current used', () => {
+            const result = system.calculateNewHoldUsed(0, 30, 100);
+
+            expect(result).toBe(30);
+        });
+    });
+});
