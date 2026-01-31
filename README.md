@@ -47,6 +47,12 @@ npm run typecheck
 
 # Clean dist folder
 npm run clean
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
 ```
 
 ### Running the Game
@@ -72,6 +78,7 @@ npx serve
 The project uses:
 - **TypeScript** for type-checking (`tsc --noEmit`)
 - **esbuild** for fast bundling into a single JavaScript file
+- **Vitest** for unit testing
 - All source files in `src/` are bundled into `dist/game.js`
 
 ## TypeScript Benefits
