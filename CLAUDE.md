@@ -31,7 +31,9 @@ src/
 │   ├── interfaces.ts    # Config types
 │   └── config.ts        # Elements, prices, settings
 ├── gamestate/           # State management
-│   └── interfaces.ts    # GameState type
+│   ├── interfaces.ts    # GameState type
+│   ├── observer.ts      # StateObserver for reactive state
+│   └── observer.test.ts # Unit tests for StateObserver
 └── persistence.ts       # Save/load to LocalStorage
 ```
 
@@ -41,6 +43,8 @@ src/
 ```bash
 npm run dev          # Watch mode with auto-rebuild
 npm run typecheck    # Type-check only
+npm test             # Run tests
+npm run test:watch   # Run tests in watch mode
 ```
 
 **Production:**
@@ -123,8 +127,15 @@ Current development order per PROJECT_BRIEF.md:
 
 1. Edit TypeScript files in `src/`
 2. Run `npm run typecheck` to verify types
-3. Run `npm run build` or use `npm run dev` for auto-rebuild
-4. Test in browser by opening `game.html`
+3. Run `npm test` to run unit tests
+4. Run `npm run build` or use `npm run dev` for auto-rebuild
+5. Test in browser by opening `game.html`
+
+### Writing Tests
+
+- Test files are co-located with source files using `.test.ts` suffix
+- Uses Vitest with Jest-compatible API (`describe`, `it`, `expect`, `vi`)
+- Run `npm run test:watch` during development for continuous testing
 
 ### Adding New Modules
 

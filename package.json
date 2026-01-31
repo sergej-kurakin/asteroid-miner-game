@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "2D space mining incremental game built with TypeScript",
   "scripts": {
-    "build": "npm run clean && npm run typecheck && npm run bundle",
+    "build": "npm run clean && npm run typecheck && npm run test && npm run bundle",
     "clean": "rm -rf dist && mkdir -p dist",
     "typecheck": "tsc --noEmit",
     "bundle": "esbuild src/game.ts --bundle --outfile=dist/game.js --format=iife --sourcemap",
     "watch": "esbuild src/game.ts --bundle --outfile=dist/game.js --format=iife --sourcemap --watch",
-    "dev": "npm run watch"
+    "dev": "npm run watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "game",
@@ -19,7 +21,8 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "esbuild": "^0.27.2",
     "typescript": "^5.0.0",
-    "esbuild": "^0.27.2"
+    "vitest": "^4.0.18"
   }
 }
