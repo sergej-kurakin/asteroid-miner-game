@@ -185,7 +185,13 @@ function renderComposition(): void {
         return;
     }
 
-    let html = '';
+    let html = `
+        <div class="composition-item" style="font-weight: bold; border-bottom: 1px solid currentColor; padding-bottom: 4px; margin-bottom: 4px;">
+            <div class="composition-element">Total Yield</div>
+            <div class="composition-percent">${asteroid.totalYield} kg</div>
+        </div>
+    `;
+
     for (const [element, percent] of Object.entries(asteroid.composition)) {
         html += `
             <div class="composition-item">
