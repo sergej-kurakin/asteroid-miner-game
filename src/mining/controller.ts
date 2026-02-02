@@ -1,5 +1,6 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
+import { MINE_POWER_COST } from './constants';
 import type {
     IMiningController,
     IMiningSystem,
@@ -31,9 +32,17 @@ export class MiningController implements IMiningController {
             return false;
         }
 
+        // Check power
+        if (state.power < MINE_POWER_COST) {
+            this.emit({ type: 'mining_failed', reason: 'insufficient_power' });
+            return false;
+        }
+
+        // Deduct power and start mining
         this.state$.setState({
             is_mining: true,
-            mining_progress: 0
+            mining_progress: 0,
+            power: state.power - MINE_POWER_COST
         });
         this.miningStartTime = Date.now();
 

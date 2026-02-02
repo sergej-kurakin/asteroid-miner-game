@@ -32,6 +32,7 @@ describe('MiningController', () => {
         is_mining: false,
         mining_progress: 0,
         power: 100,
+        power_capacity: 100,
         ...overrides
     });
 
@@ -95,6 +96,40 @@ describe('MiningController', () => {
 
             expect(events).toHaveLength(1);
             expect(events[0].type).toBe('mining_started');
+        });
+
+        it('should deduct 10 power when starting mining', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid(),
+                power: 50
+            }));
+            controller = new MiningController(state$, prices);
+
+            controller.startMining();
+
+            expect(state$.getState().power).toBe(40);
+        });
+
+        it('should not start mining when power < 10', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid(),
+                power: 9
+            }));
+            controller = new MiningController(state$, prices);
+
+            const events: MiningEvent[] = [];
+            controller.subscribe(event => events.push(event));
+
+            const result = controller.startMining();
+
+            expect(result).toBe(false);
+            expect(state$.getState().is_mining).toBe(false);
+            expect(state$.getState().power).toBe(9); // Unchanged
+
+            // Should emit mining_failed event
+            expect(events).toHaveLength(1);
+            expect(events[0].type).toBe('mining_failed');
+            expect((events[0] as { type: 'mining_failed'; reason: 'insufficient_power' }).reason).toBe('insufficient_power');
         });
     });
 

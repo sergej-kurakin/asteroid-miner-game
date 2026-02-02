@@ -1,0 +1,1 @@
+export const MINE_POWER_COST = 10;

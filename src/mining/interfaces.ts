@@ -17,7 +17,8 @@ export type MiningEvent =
     | { type: 'mining_started'; asteroid: Asteroid }
     | { type: 'mining_progress'; progress: number }
     | { type: 'mining_completed'; yield: MiningYield }
-    | { type: 'discovery'; element: string };
+    | { type: 'discovery'; element: string }
+    | { type: 'mining_failed'; reason: 'insufficient_power' };
 
 export type MiningEventListener = (event: MiningEvent) => void;
 
