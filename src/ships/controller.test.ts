@@ -16,6 +16,7 @@ function createMockState(overrides: Partial<GameState> = {}): GameState {
         is_mining: false,
         mining_progress: 0,
         power: 100,
+        power_capacity: 100,
         ...overrides
     };
 }
@@ -254,6 +255,22 @@ describe('ShipController', () => {
             const stateCall = (mockObservable.setState as ReturnType<typeof vi.fn>).mock.calls[0][0];
             // Should be capped at new capacity
             expect(stateCall.hold_used).toBe(SHIPS[1].holdCapacity);
+        });
+
+        it('caps power_capacity at new capacity', () => {
+            mockObservable = createMockObservable(createMockState({
+                credits: 5000,
+                power: 90,
+                power_capacity: 100
+            }));
+            controller = new ShipController(mockObservable);
+
+            controller.upgrade();
+
+            const stateCall = (mockObservable.setState as ReturnType<typeof vi.fn>).mock.calls[0][0];
+            // Should be capped at new capacity
+            expect(stateCall.power).toBe(90);
+            expect(stateCall.power_capacity).toBe(SHIPS[1].powerCell);
         });
     });
 });
