@@ -174,3 +174,6 @@ export const SHIP_SPAWN_CONFIG: Record<number, ShipSpawnConfig> = {
 
 // Rare element symbols for bonus calculations
 export const RARE_ELEMENTS: string[] = ['Co', 'Cr', 'Mn'];
+
+// Power cost for scanning an asteroid
+export const SCAN_POWER_COST = 5;

@@ -53,3 +53,25 @@ export interface Asteroid {
     miningTime: number;  // milliseconds
     visualDiameter: number;  // pixels
 }
+
+// Result of scanning for an asteroid
+export interface ScanResult {
+    success: boolean;
+    asteroid?: Asteroid;
+    error?: 'is_mining' | 'asteroid_exists' | 'insufficient_power';
+}
+
+// Result of abandoning an asteroid
+export interface AbandonResult {
+    success: boolean;
+    error?: 'is_mining' | 'no_asteroid';
+}
+
+// Controller interface
+export interface IAsteroidsController {
+    scan(): ScanResult;
+    abandon(): AbandonResult;
+    canScan(): boolean;
+    canAbandon(): boolean;
+    getCurrentAsteroid(): Asteroid | null;
+}

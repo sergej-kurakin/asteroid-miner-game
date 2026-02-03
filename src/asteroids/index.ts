@@ -8,7 +8,10 @@ export type {
     AsteroidTypeConfig,
     WeightedItem,
     ShipSpawnConfig,
-    ElementRange
+    ElementRange,
+    IAsteroidsController,
+    ScanResult,
+    AbandonResult
 } from './interfaces';
 
 // Generator function exports
@@ -27,8 +30,12 @@ export {
     ASTEROID_SIZES,
     ASTEROID_TYPES,
     SHIP_SPAWN_CONFIG,
-    RARE_ELEMENTS
+    RARE_ELEMENTS,
+    SCAN_POWER_COST
 } from './constants';
+
+// Controller export
+export { AsteroidsController } from './controller';
 
 // Utility exports
 export {
