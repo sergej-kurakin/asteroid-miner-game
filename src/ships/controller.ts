@@ -60,11 +60,16 @@ export class ShipController implements IShipController {
             nextShip.holdCapacity
         );
 
+        // Cap power to new ship's powerCell
+        const newPower = Math.min(state.power, nextShip.powerCell);
+
         this.state$.setState({
             credits: state.credits - nextShip.cost,
             current_ship_level: nextShip.id,
             hold_capacity: nextShip.holdCapacity,
-            hold_used: newHoldUsed
+            hold_used: newHoldUsed,
+            power: newPower,
+            power_capacity: nextShip.powerCell,
         });
 
         return { success: true, newShip: nextShip };

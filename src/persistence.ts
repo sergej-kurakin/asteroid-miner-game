@@ -10,6 +10,8 @@ export interface SaveData {
     inventory: { [element: string]: number };
     hold_used: number;
     hold_capacity: number;
+    power: number;
+    power_capacity: number;
 }
 
 const STORAGE_KEY = 'asteroidMiner';
@@ -21,7 +23,10 @@ export function saveGameState(state: Readonly<GameState>): void {
         discovered_elements: state.discovered_elements,
         inventory: state.inventory,
         hold_used: state.hold_used,
-        hold_capacity: state.hold_capacity
+        hold_capacity: state.hold_capacity,
+        power: state.power,
+        power_capacity: state.power_capacity
+
     };
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -45,7 +50,8 @@ export function loadGameState(): GameState {
                 asteroid: null,
                 is_mining: false,
                 mining_progress: 0,
-                power: 100
+                power: data.power || 100,
+                power_capacity: data.power_capacity || 100
             };
         }
     } catch (e) {
@@ -61,6 +67,7 @@ export function loadGameState(): GameState {
         asteroid: null,
         is_mining: false,
         mining_progress: 0,
-        power: 100
+        power: 100,
+        power_capacity: 100
     };
 }

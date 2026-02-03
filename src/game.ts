@@ -9,6 +9,7 @@ import { ShipController } from './ships';
 import { CONFIG } from './config/config';
 import { saveGameState, loadGameState } from './persistence';
 import { MiningController, type IMiningController, type MiningEvent, type ElementPrices } from './mining';
+import { PowerController, type IPowerController } from './power';
 
 interface DOMElements {
     powerValue: HTMLElement;
@@ -32,6 +33,9 @@ interface DOMElements {
     inventoryList: HTMLElement;
     btnSell: HTMLButtonElement;
     shipInfo: HTMLElement;
+    powerCurrent: HTMLElement;
+    powerMax: HTMLElement;
+    btnBuyPower: HTMLButtonElement;
 }
 
 // ========================================
@@ -41,18 +45,28 @@ interface DOMElements {
 let gameState$: Observable<GameState>;
 let shipController: IShipController;
 let miningController: IMiningController;
+let powerController: IPowerController;
 
 function setupStateSubscriptions(): void {
     gameState$.subscribeToProperty('credits', () => {
         renderCredits();
         renderShipInfo();
+        renderPowerButton();
     });
     gameState$.subscribeToProperty('hold_used', () => {
         renderGauges();
         renderInventory();
     });
     gameState$.subscribeToProperty('hold_capacity', renderGauges);
-    gameState$.subscribeToProperty('power', renderGauges);
+    gameState$.subscribeToProperty('power', () => {
+        renderGauges();
+        renderPowerButton();
+        updateButtonStates();
+    });
+    gameState$.subscribeToProperty('power_capacity', () => {
+        renderGauges();
+        renderPowerButton();
+    });
     gameState$.subscribeToProperty('asteroid', renderComposition);
     gameState$.subscribeToProperty('current_ship_level', renderShipInfo);
     gameState$.subscribeToProperty('inventory', renderInventory);
@@ -86,6 +100,9 @@ function cacheDOMElements(): void {
     DOM.inventoryList = document.getElementById('inventory-list')!;
     DOM.btnSell = document.getElementById('btn-sell') as HTMLButtonElement;
     DOM.shipInfo = document.getElementById('ship-info')!;
+    DOM.powerCurrent = document.getElementById('power-current')!;
+    DOM.powerMax = document.getElementById('power-max')!;
+    DOM.btnBuyPower = document.getElementById('btn-buy-power') as HTMLButtonElement;
 }
 
 // ========================================
@@ -210,8 +227,8 @@ function updateStatus(message: string): void {
 
 function updateButtonStates(): void {
     const state = gameState$.getState();
-    DOM.btnScan!.disabled = state.is_mining || state.asteroid !== null;
-    DOM.btnMine!.disabled = state.is_mining || state.asteroid === null;
+    DOM.btnScan!.disabled = state.is_mining || state.asteroid !== null || state.power < 5;
+    DOM.btnMine!.disabled = state.is_mining || state.asteroid === null || state.power < 10;
     DOM.btnAbandon!.disabled = state.is_mining || state.asteroid === null;
 }
 
@@ -284,6 +301,38 @@ function renderShipInfo(): void {
     }
 }
 
+function renderPowerButton(): void {
+    const state = gameState$.getState();
+    const canBuy = powerController.canBuyPower();
+
+    // Update power stats display
+    if (DOM.powerCurrent) {
+        DOM.powerCurrent.textContent = Math.round(state.power).toString();
+    }
+    if (DOM.powerMax) {
+        DOM.powerMax.textContent = state.power_capacity.toString();
+    }
+
+    // Update button state
+    if (DOM.btnBuyPower) {
+        DOM.btnBuyPower.disabled = !canBuy;
+        DOM.btnBuyPower.className = `btn btn-buy-power ${canBuy ? 'affordable' : 'unaffordable'}`;
+    }
+}
+
+function handleBuyPower(): void {
+    const result = powerController.buyPower();
+
+    if (result.success) {
+        updateStatus('Power Recharged (+50)');
+        saveGameState(gameState$.getState());
+    } else if (result.error === 'insufficient_credits') {
+        updateStatus('Insufficient Credits');
+    } else if (result.error === 'power_full') {
+        updateStatus('Power Cell Full');
+    }
+}
+
 // ========================================
 // DISCOVERY SYSTEM
 // ========================================
@@ -326,6 +375,16 @@ function scanAsteroid(): void {
     const state = gameState$.getState();
     if (state.is_mining || state.asteroid !== null) return;
 
+    // Check power
+    const SCAN_POWER_COST = 5;
+    if (state.power < SCAN_POWER_COST) {
+        updateStatus('Insufficient Power');
+        return;
+    }
+
+    // Deduct power
+    gameState$.updateProperty('power', state.power - SCAN_POWER_COST);
+
     // Generate asteroid based on current ship level
     const newAsteroid = generateAsteroid(state.current_ship_level);
     gameState$.updateProperty('asteroid', newAsteroid);
@@ -367,6 +426,12 @@ function handleMiningEvent(event: MiningEvent): void {
             updateButtonStates();
             saveGameState(gameState$.getState());
             break;
+
+        case 'mining_failed':
+            if (event.reason === 'insufficient_power') {
+                updateStatus('Insufficient Power');
+            }
+            break;
     }
 }
 
@@ -400,6 +465,7 @@ function init(): void {
 
     // Initialize controllers
     shipController = new ShipController(gameState$);
+    powerController = new PowerController(gameState$);
     miningController = new MiningController(gameState$, elementPrices);
 
     // Subscribe to mining events
@@ -413,6 +479,7 @@ function init(): void {
     DOM.btnMine!.addEventListener('click', handleStartMining);
     DOM.btnAbandon!.addEventListener('click', abandonAsteroid);
     DOM.btnSell!.addEventListener('click', handleSellResources);
+    DOM.btnBuyPower!.addEventListener('click', handleBuyPower);
 
     // Initial render
     renderGauges();
@@ -420,6 +487,7 @@ function init(): void {
     renderInventory();
     renderComposition();
     renderShipInfo();
+    renderPowerButton();
     updateButtonStates();
 
     // Auto-save interval

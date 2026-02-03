@@ -11,4 +11,5 @@ export interface GameState {
     is_mining: boolean;
     mining_progress: number;
     power: number;
+    power_capacity: number;
 }
