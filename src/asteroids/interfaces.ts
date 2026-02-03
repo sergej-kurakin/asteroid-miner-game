@@ -75,3 +75,14 @@ export interface IAsteroidsController {
     canAbandon(): boolean;
     getCurrentAsteroid(): Asteroid | null;
 }
+
+// Random provider interface for dependency injection
+export interface RandomProvider {
+    randomInRange(min: number, max: number): number;
+    weightedRandomSelect<T>(items: WeightedItem<T>[]): T;
+}
+
+// Asteroid generator interface
+export interface IAsteroidGenerator {
+    generate(shipLevel: number): Asteroid;
+}

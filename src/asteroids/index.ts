@@ -11,11 +11,13 @@ export type {
     ElementRange,
     IAsteroidsController,
     ScanResult,
-    AbandonResult
+    AbandonResult,
+    RandomProvider,
+    IAsteroidGenerator
 } from './interfaces';
 
-// Generator function exports
-export { generateAsteroid } from './generator';
+// Generator exports
+export { AsteroidGenerator, generateAsteroid } from './generator';
 
 // Constant exports
 export {
