@@ -5,7 +5,7 @@ import { randomInRange, weightedRandomSelect, probabilityMapToWeightedItems, nor
 /**
  * Select asteroid size based on ship level spawn probabilities
  */
-export function selectSize(shipLevel: number): AsteroidSize {
+function selectSize(shipLevel: number): AsteroidSize {
     const config = SHIP_SPAWN_CONFIG[shipLevel] || SHIP_SPAWN_CONFIG[1];
     const weightedSizes = probabilityMapToWeightedItems<AsteroidSize>(config.sizes);
     return weightedRandomSelect(weightedSizes);
@@ -14,7 +14,7 @@ export function selectSize(shipLevel: number): AsteroidSize {
 /**
  * Select asteroid type based on ship level spawn probabilities
  */
-export function selectType(shipLevel: number): AsteroidType {
+function selectType(shipLevel: number): AsteroidType {
     const config = SHIP_SPAWN_CONFIG[shipLevel] || SHIP_SPAWN_CONFIG[1];
     const weightedTypes = probabilityMapToWeightedItems<AsteroidType>(config.types);
     return weightedRandomSelect(weightedTypes);
@@ -24,7 +24,7 @@ export function selectType(shipLevel: number): AsteroidType {
  * Generate random composition based on asteroid type configuration
  * Percentages are randomized within configured ranges and normalized to 100%
  */
-export function generateComposition(type: AsteroidType): AsteroidComposition {
+function generateComposition(type: AsteroidType): AsteroidComposition {
     const typeConfig = ASTEROID_TYPES[type];
     const rawComposition: AsteroidComposition = {};
 
@@ -40,7 +40,7 @@ export function generateComposition(type: AsteroidType): AsteroidComposition {
 /**
  * Calculate total yield based on size and type bonuses
  */
-export function calculateYield(size: AsteroidSize, type: AsteroidType): number {
+function calculateYield(size: AsteroidSize, type: AsteroidType): number {
     const sizeConfig = ASTEROID_SIZES[size];
     const typeConfig = ASTEROID_TYPES[type];
 
@@ -68,18 +68,4 @@ export function generateAsteroid(shipLevel: number): Asteroid {
         miningTime: sizeConfig.miningTime,
         visualDiameter: sizeConfig.visualDiameter
     };
-}
-
-/**
- * Get display name for asteroid type
- */
-export function getAsteroidTypeName(type: AsteroidType): string {
-    return ASTEROID_TYPES[type].name;
-}
-
-/**
- * Check if a ship level can mine a given asteroid size
- */
-export function canShipMineSize(shipLevel: number, size: AsteroidSize): boolean {
-    return shipLevel >= ASTEROID_SIZES[size].minShipLevel;
 }

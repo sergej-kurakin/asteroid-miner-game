@@ -15,15 +15,7 @@ export type {
 } from './interfaces';
 
 // Generator function exports
-export {
-    generateAsteroid,
-    getAsteroidTypeName,
-    canShipMineSize,
-    selectSize,
-    selectType,
-    generateComposition,
-    calculateYield
-} from './generator';
+export { generateAsteroid } from './generator';
 
 // Constant exports
 export {
