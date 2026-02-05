@@ -8,33 +8,28 @@ export type {
     AsteroidTypeConfig,
     WeightedItem,
     ShipSpawnConfig,
-    ElementRange
+    ElementRange,
+    IAsteroidsController,
+    ScanResult,
+    AbandonResult,
+    RandomProvider,
+    IAsteroidGenerator
 } from './interfaces';
 
-// Generator function exports
-export {
-    generateAsteroid,
-    getAsteroidTypeName,
-    canShipMineSize,
-    selectSize,
-    selectType,
-    generateComposition,
-    calculateYield
-} from './generator';
+// Generator exports
+export { AsteroidGenerator, generateAsteroid } from './generator';
+
+// Random provider export
+export { DefaultRandomProvider } from './random-provider';
 
 // Constant exports
 export {
     ASTEROID_SIZES,
     ASTEROID_TYPES,
     SHIP_SPAWN_CONFIG,
-    RARE_ELEMENTS
+    RARE_ELEMENTS,
+    SCAN_POWER_COST
 } from './constants';
 
-// Utility exports
-export {
-    randomInRange,
-    randomFloatInRange,
-    weightedRandomSelect,
-    probabilityMapToWeightedItems,
-    normalizeComposition
-} from './utils';
+// Controller export
+export { AsteroidsController } from './controller';

@@ -2,7 +2,7 @@
 // TYPE DEFINITIONS
 // ========================================
 
-import { generateAsteroid } from './asteroids';
+import { AsteroidsController, type IAsteroidsController } from './asteroids';
 import type { IShipController } from './ships';
 import { type GameState, StateObserver, type Observable } from './gamestate';
 import { ShipController } from './ships';
@@ -46,6 +46,7 @@ let gameState$: Observable<GameState>;
 let shipController: IShipController;
 let miningController: IMiningController;
 let powerController: IPowerController;
+let asteroidsController: IAsteroidsController;
 
 function setupStateSubscriptions(): void {
     gameState$.subscribeToProperty('credits', () => {
@@ -227,9 +228,9 @@ function updateStatus(message: string): void {
 
 function updateButtonStates(): void {
     const state = gameState$.getState();
-    DOM.btnScan!.disabled = state.is_mining || state.asteroid !== null || state.power < 5;
+    DOM.btnScan!.disabled = !asteroidsController.canScan();
     DOM.btnMine!.disabled = state.is_mining || state.asteroid === null || state.power < 10;
-    DOM.btnAbandon!.disabled = state.is_mining || state.asteroid === null;
+    DOM.btnAbandon!.disabled = !asteroidsController.canAbandon();
 }
 
 function renderShipInfo(): void {
@@ -356,47 +357,30 @@ function showDiscoveryAlert(element: string): void {
 // GAME LOGIC
 // ========================================
 function abandonAsteroid(): void {
-    const state = gameState$.getState();
-    if (state.is_mining || state.asteroid === null) return;
+    const result = asteroidsController.abandon();
 
-    // Clear asteroid
-    gameState$.updateProperty('asteroid', null);
-
-    // Update UI
-    DOM.asteroid!.classList.remove('visible');
-    (DOM.asteroidPlaceholder as HTMLElement).style.display = 'block';
-
-    updateStatus('Asteroid Abandoned');
-    renderComposition();
-    updateButtonStates();
+    if (result.success) {
+        DOM.asteroid!.classList.remove('visible');
+        (DOM.asteroidPlaceholder as HTMLElement).style.display = 'block';
+        updateStatus('Asteroid Abandoned');
+        renderComposition();
+        updateButtonStates();
+    }
 }
 
 function scanAsteroid(): void {
-    const state = gameState$.getState();
-    if (state.is_mining || state.asteroid !== null) return;
+    const result = asteroidsController.scan();
 
-    // Check power
-    const SCAN_POWER_COST = 5;
-    if (state.power < SCAN_POWER_COST) {
+    if (result.success) {
+        DOM.asteroid!.classList.add('visible');
+        (DOM.asteroidPlaceholder as HTMLElement).style.display = 'none';
+        updateStatus('Asteroid Locked');
+        renderComposition();
+        updateButtonStates();
+        saveGameState(gameState$.getState());
+    } else if (result.error === 'insufficient_power') {
         updateStatus('Insufficient Power');
-        return;
     }
-
-    // Deduct power
-    gameState$.updateProperty('power', state.power - SCAN_POWER_COST);
-
-    // Generate asteroid based on current ship level
-    const newAsteroid = generateAsteroid(state.current_ship_level);
-    gameState$.updateProperty('asteroid', newAsteroid);
-
-    // Update UI
-    DOM.asteroid!.classList.add('visible');
-    (DOM.asteroidPlaceholder as HTMLElement).style.display = 'none';
-
-    updateStatus('Asteroid Locked');
-    renderComposition();
-    updateButtonStates();
-    saveGameState(gameState$.getState());
 }
 
 function handleMiningEvent(event: MiningEvent): void {
@@ -467,6 +451,7 @@ function init(): void {
     shipController = new ShipController(gameState$);
     powerController = new PowerController(gameState$);
     miningController = new MiningController(gameState$, elementPrices);
+    asteroidsController = new AsteroidsController(gameState$);
 
     // Subscribe to mining events
     miningController.subscribe(handleMiningEvent);
