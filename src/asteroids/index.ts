@@ -33,8 +33,3 @@ export {
 
 // Controller export
 export { AsteroidsController } from './controller';
-
-// Utility exports
-export {
-    probabilityMapToWeightedItems
-} from './utils';

@@ -1,6 +1,5 @@
-import type { Asteroid, AsteroidSize, AsteroidType, AsteroidComposition, RandomProvider, IAsteroidGenerator } from './interfaces';
+import type { Asteroid, AsteroidSize, AsteroidType, AsteroidComposition, WeightedItem, RandomProvider, IAsteroidGenerator } from './interfaces';
 import { ASTEROID_SIZES, ASTEROID_TYPES, SHIP_SPAWN_CONFIG } from './constants';
-import { probabilityMapToWeightedItems } from './utils';
 import { DefaultRandomProvider } from './random-provider';
 
 /**
@@ -39,7 +38,7 @@ export class AsteroidGenerator implements IAsteroidGenerator {
      */
     private selectSize(shipLevel: number): AsteroidSize {
         const config = SHIP_SPAWN_CONFIG[shipLevel] || SHIP_SPAWN_CONFIG[1];
-        const weightedSizes = probabilityMapToWeightedItems<AsteroidSize>(config.sizes);
+        const weightedSizes = this.probabilityMapToWeightedItems<AsteroidSize>(config.sizes);
         return this.random.weightedRandomSelect(weightedSizes);
     }
 
@@ -48,8 +47,29 @@ export class AsteroidGenerator implements IAsteroidGenerator {
      */
     private selectType(shipLevel: number): AsteroidType {
         const config = SHIP_SPAWN_CONFIG[shipLevel] || SHIP_SPAWN_CONFIG[1];
-        const weightedTypes = probabilityMapToWeightedItems<AsteroidType>(config.types);
+        const weightedTypes = this.probabilityMapToWeightedItems<AsteroidType>(config.types);
         return this.random.weightedRandomSelect(weightedTypes);
+    }
+
+    /**
+     * Convert a probability map (key -> percentage) to weighted items
+     */
+    private probabilityMapToWeightedItems<T extends string>(
+        probMap: { [key in T]?: number }
+    ): WeightedItem<T>[] {
+        const items: WeightedItem<T>[] = [];
+
+        for (const key of Object.keys(probMap) as T[]) {
+            const weight = probMap[key];
+            if (weight !== undefined && weight > 0) {
+                items.push({
+                    value: key,
+                    weight: weight
+                });
+            }
+        }
+
+        return items;
     }
 
     /**
