@@ -1,6 +1,6 @@
 import type { Asteroid, AsteroidSize, AsteroidType, AsteroidComposition, RandomProvider, IAsteroidGenerator } from './interfaces';
 import { ASTEROID_SIZES, ASTEROID_TYPES, SHIP_SPAWN_CONFIG } from './constants';
-import { probabilityMapToWeightedItems, normalizeComposition } from './utils';
+import { probabilityMapToWeightedItems } from './utils';
 import { DefaultRandomProvider } from './random-provider';
 
 /**
@@ -66,7 +66,36 @@ export class AsteroidGenerator implements IAsteroidGenerator {
         }
 
         // Normalize to ensure percentages sum to 100
-        return normalizeComposition(rawComposition);
+        return this.normalizeComposition(rawComposition);
+    }
+
+    /**
+     * Normalize composition percentages to sum to 100
+     */
+    private normalizeComposition(composition: AsteroidComposition): AsteroidComposition {
+        const total = Object.values(composition).reduce((sum, val) => sum + val, 0);
+
+        if (total === 0) {
+            return composition;
+        }
+
+        const normalized: AsteroidComposition = {};
+        const elements = Object.keys(composition);
+        let runningTotal = 0;
+
+        // Normalize all but the last element
+        for (let i = 0; i < elements.length - 1; i++) {
+            const element = elements[i];
+            const normalizedValue = Math.round((composition[element] / total) * 100);
+            normalized[element] = normalizedValue;
+            runningTotal += normalizedValue;
+        }
+
+        // Last element gets the remainder to ensure exact sum of 100
+        const lastElement = elements[elements.length - 1];
+        normalized[lastElement] = 100 - runningTotal;
+
+        return normalized;
     }
 
     /**

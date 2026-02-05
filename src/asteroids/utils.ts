@@ -1,4 +1,4 @@
-import type { WeightedItem, AsteroidComposition } from './interfaces';
+import type { WeightedItem } from './interfaces';
 
 /**
  * Convert a probability map (key -> percentage) to weighted items
@@ -21,35 +21,4 @@ export function probabilityMapToWeightedItems<T extends string>(
     }
 
     return items;
-}
-
-/**
- * Normalize composition percentages to sum to 100
- * @param composition Raw composition object
- * @returns Normalized composition with percentages summing to 100
- */
-export function normalizeComposition(composition: AsteroidComposition): AsteroidComposition {
-    const total = Object.values(composition).reduce((sum, val) => sum + val, 0);
-
-    if (total === 0) {
-        return composition;
-    }
-
-    const normalized: AsteroidComposition = {};
-    const elements = Object.keys(composition);
-    let runningTotal = 0;
-
-    // Normalize all but the last element
-    for (let i = 0; i < elements.length - 1; i++) {
-        const element = elements[i];
-        const normalizedValue = Math.round((composition[element] / total) * 100);
-        normalized[element] = normalizedValue;
-        runningTotal += normalizedValue;
-    }
-
-    // Last element gets the remainder to ensure exact sum of 100
-    const lastElement = elements[elements.length - 1];
-    normalized[lastElement] = 100 - runningTotal;
-
-    return normalized;
 }

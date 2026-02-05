@@ -36,6 +36,5 @@ export { AsteroidsController } from './controller';
 
 // Utility exports
 export {
-    probabilityMapToWeightedItems,
-    normalizeComposition
+    probabilityMapToWeightedItems
 } from './utils';
