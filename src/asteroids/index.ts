@@ -19,6 +19,9 @@ export type {
 // Generator exports
 export { AsteroidGenerator, generateAsteroid } from './generator';
 
+// Random provider export
+export { DefaultRandomProvider } from './random-provider';
+
 // Constant exports
 export {
     ASTEROID_SIZES,
@@ -33,9 +36,6 @@ export { AsteroidsController } from './controller';
 
 // Utility exports
 export {
-    randomInRange,
-    randomFloatInRange,
-    weightedRandomSelect,
     probabilityMapToWeightedItems,
     normalizeComposition
 } from './utils';

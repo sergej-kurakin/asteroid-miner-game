@@ -1,14 +1,7 @@
 import type { Asteroid, AsteroidSize, AsteroidType, AsteroidComposition, RandomProvider, IAsteroidGenerator } from './interfaces';
 import { ASTEROID_SIZES, ASTEROID_TYPES, SHIP_SPAWN_CONFIG } from './constants';
-import { randomInRange, weightedRandomSelect, probabilityMapToWeightedItems, normalizeComposition } from './utils';
-
-/**
- * Default random provider using the utility functions
- */
-const defaultRandomProvider: RandomProvider = {
-    randomInRange,
-    weightedRandomSelect
-};
+import { probabilityMapToWeightedItems, normalizeComposition } from './utils';
+import { DefaultRandomProvider } from './random-provider';
 
 /**
  * Class-based asteroid generator with dependency injection support
@@ -17,7 +10,7 @@ export class AsteroidGenerator implements IAsteroidGenerator {
     private readonly random: RandomProvider;
 
     constructor(randomProvider?: RandomProvider) {
-        this.random = randomProvider ?? defaultRandomProvider;
+        this.random = randomProvider ?? new DefaultRandomProvider();
     }
 
     /**
