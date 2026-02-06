@@ -10,6 +10,7 @@ import { CONFIG } from './config/config';
 import { saveGameState, loadGameState } from './persistence';
 import { MiningController, type IMiningController, type MiningEvent, type ElementPrices } from './mining';
 import { PowerController, type IPowerController } from './power';
+import { ToolController, type IToolController } from './tools';
 import {
     type UIComponent,
     formatNumber,
@@ -22,7 +23,8 @@ import {
     StatusDisplay,
     DiscoveryAlert,
     ControlButtons,
-    AsteroidView
+    AsteroidView,
+    ToolPanel
 } from './ui';
 
 // ========================================
@@ -34,6 +36,7 @@ let shipController: IShipController;
 let miningController: IMiningController;
 let powerController: IPowerController;
 let asteroidsController: IAsteroidsController;
+let toolController: IToolController;
 
 // ========================================
 // UI COMPONENTS
@@ -69,6 +72,35 @@ function handleBuyPower(): void {
     } else if (result.error === 'power_full') {
         statusDisplay.setMessage('Power Cell Full');
     }
+}
+
+// ========================================
+// TOOL HELPER FUNCTIONS
+// ========================================
+function handleBuyTool(toolId: string): void {
+    const result = toolController.buyTool(toolId);
+    if (result.success) {
+        const tool = toolController.getToolData(toolId);
+        statusDisplay.setMessage(`Purchased ${tool?.name ?? toolId}`);
+        saveGameState(gameState$.getState());
+    } else if (result.error === 'insufficient_credits') {
+        statusDisplay.setMessage('Insufficient Credits');
+    }
+}
+
+function handleEquipTool(toolId: string, slot: number): void {
+    const result = toolController.equipTool(toolId, slot);
+    if (result.success) {
+        const tool = toolController.getToolData(toolId);
+        statusDisplay.setMessage(`Equipped ${tool?.name ?? toolId}`);
+        saveGameState(gameState$.getState());
+    }
+}
+
+function handleUnequipTool(slot: number): void {
+    toolController.unequipTool(slot);
+    statusDisplay.setMessage('Tool Unequipped');
+    saveGameState(gameState$.getState());
 }
 
 // ========================================
@@ -169,6 +201,11 @@ function initComponents(): void {
         new InventoryList(gameState$, CONFIG.elements),
         new ShipInfo(gameState$, shipController, handleShipUpgrade),
         new PowerButton(gameState$, powerController, handleBuyPower),
+        new ToolPanel(gameState$, toolController, {
+            onBuy: handleBuyTool,
+            onEquip: handleEquipTool,
+            onUnequip: handleUnequipTool
+        }),
 
         // Control buttons
         new ControlButtons(gameState$, asteroidsController, {
@@ -208,7 +245,8 @@ function init(): void {
     // Initialize controllers
     shipController = new ShipController(gameState$);
     powerController = new PowerController(gameState$);
-    miningController = new MiningController(gameState$, elementPrices);
+    toolController = new ToolController(gameState$, shipController);
+    miningController = new MiningController(gameState$, elementPrices, toolController);
     asteroidsController = new AsteroidsController(gameState$);
 
     // Subscribe to mining events

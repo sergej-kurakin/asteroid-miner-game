@@ -29,6 +29,8 @@ describe('GaugeComponent', () => {
         mining_progress: 0,
         power: 100,
         power_capacity: 100,
+        equipped_tools: [],
+        tools_owned: [],
         ...overrides,
     });
 
@@ -65,7 +67,7 @@ describe('GaugeComponent', () => {
             const valueEl = document.getElementById('power-value');
             const fillEl = document.getElementById('power-fill');
 
-            expect(valueEl?.textContent).toBe('100%');
+            expect(valueEl?.textContent).toBe('100 / 100');
             expect(fillEl?.style.width).toBe('100%');
         });
 
@@ -76,7 +78,7 @@ describe('GaugeComponent', () => {
             const valueEl = document.getElementById('power-value');
             const fillEl = document.getElementById('power-fill');
 
-            expect(valueEl?.textContent).toBe('50%');
+            expect(valueEl?.textContent).toBe('50 / 100');
             expect(fillEl?.style.width).toBe('50%');
         });
 
@@ -85,7 +87,7 @@ describe('GaugeComponent', () => {
             state$.setState({ power: 50, power_capacity: 200 });
 
             const valueEl = document.getElementById('power-value');
-            expect(valueEl?.textContent).toBe('25%');
+            expect(valueEl?.textContent).toBe('50 / 200');
         });
 
         it('rounds percentage value', () => {
@@ -93,7 +95,7 @@ describe('GaugeComponent', () => {
             state$.setState({ power: 33, power_capacity: 100 });
 
             const valueEl = document.getElementById('power-value');
-            expect(valueEl?.textContent).toBe('33%');
+            expect(valueEl?.textContent).toBe('33 / 100');
         });
     });
 

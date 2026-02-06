@@ -1,5 +1,6 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
+import type { IToolController, ToolBonuses } from '../tools/interfaces';
 import { MINE_POWER_COST } from './constants';
 import type {
     IMiningController,
@@ -11,6 +12,12 @@ import type {
 } from './interfaces';
 import { MiningSystem } from './system';
 
+const DEFAULT_BONUSES: ToolBonuses = {
+    yieldMultiplier: 1.0,
+    rareMultiplier: 1.0,
+    powerCostMultiplier: 1.0
+};
+
 export class MiningController implements IMiningController {
     private readonly system: IMiningSystem;
     private listeners: Set<MiningEventListener> = new Set();
@@ -21,9 +28,14 @@ export class MiningController implements IMiningController {
     constructor(
         private readonly state$: Observable<GameState>,
         private readonly prices: ElementPrices,
+        private readonly toolController?: IToolController,
         system?: IMiningSystem
     ) {
         this.system = system ?? new MiningSystem();
+    }
+
+    private getToolBonuses(): ToolBonuses {
+        return this.toolController?.getToolBonuses() ?? DEFAULT_BONUSES;
     }
 
     startMining(): boolean {
@@ -32,8 +44,12 @@ export class MiningController implements IMiningController {
             return false;
         }
 
+        // Calculate effective power cost with tool bonuses
+        const bonuses = this.getToolBonuses();
+        const effectivePowerCost = Math.ceil(MINE_POWER_COST * bonuses.powerCostMultiplier);
+
         // Check power
-        if (state.power < MINE_POWER_COST) {
+        if (state.power < effectivePowerCost) {
             this.emit({ type: 'mining_failed', reason: 'insufficient_power' });
             return false;
         }
@@ -42,7 +58,7 @@ export class MiningController implements IMiningController {
         this.state$.setState({
             is_mining: true,
             mining_progress: 0,
-            power: state.power - MINE_POWER_COST
+            power: state.power - effectivePowerCost
         });
         this.miningStartTime = Date.now();
 
@@ -126,8 +142,8 @@ export class MiningController implements IMiningController {
             this.updateIntervalId = null;
         }
 
-        // Calculate full yield from asteroid
-        const fullYield = this.system.calculateYield(state.asteroid);
+        // Calculate full yield from asteroid with tool bonuses
+        const fullYield = this.system.calculateYield(state.asteroid, this.getToolBonuses());
 
         // Cap yield to available hold space
         const availableSpace = state.hold_capacity - state.hold_used;

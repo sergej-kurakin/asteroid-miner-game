@@ -3,6 +3,7 @@ import { MiningController } from './controller';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { Asteroid } from '../asteroids/interfaces';
+import type { IToolController } from '../tools/interfaces';
 import type { MiningEvent, ElementPrices } from './interfaces';
 
 describe('MiningController', () => {
@@ -33,6 +34,8 @@ describe('MiningController', () => {
         mining_progress: 0,
         power: 100,
         power_capacity: 100,
+        equipped_tools: [],
+        tools_owned: [],
         ...overrides
     });
 
@@ -370,6 +373,99 @@ describe('MiningController', () => {
             // Inventory should not change
             expect(state.inventory).toEqual({ Fe: 100 });
             expect(state.hold_used).toBe(100);
+        });
+    });
+
+    describe('tool bonuses integration', () => {
+        const createMockToolController = (overrides = {}): IToolController => ({
+            buyTool: vi.fn(),
+            equipTool: vi.fn(),
+            unequipTool: vi.fn(),
+            getEquippedTools: vi.fn().mockReturnValue([]),
+            getOwnedTools: vi.fn().mockReturnValue([]),
+            getToolBonuses: vi.fn().mockReturnValue({
+                yieldMultiplier: 1.0,
+                rareMultiplier: 1.0,
+                powerCostMultiplier: 1.0,
+                ...overrides
+            }),
+            getAvailableSlots: vi.fn().mockReturnValue(2),
+            isToolOwned: vi.fn().mockReturnValue(false),
+            isToolEquipped: vi.fn().mockReturnValue(false),
+            getToolData: vi.fn(),
+            getAllTools: vi.fn().mockReturnValue([])
+        });
+
+        it('should apply power cost multiplier when starting mining', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid(),
+                power: 50
+            }));
+            const toolCtrl = createMockToolController({ powerCostMultiplier: 1.5 });
+            controller = new MiningController(state$, prices, toolCtrl);
+
+            controller.startMining();
+
+            // Base cost = 10, with 1.5x = ceil(15) = 15
+            expect(state$.getState().power).toBe(35); // 50 - 15
+        });
+
+        it('should fail mining when power < effective cost', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid(),
+                power: 12
+            }));
+            const toolCtrl = createMockToolController({ powerCostMultiplier: 1.5 });
+            controller = new MiningController(state$, prices, toolCtrl);
+
+            const events: MiningEvent[] = [];
+            controller.subscribe(e => events.push(e));
+
+            const result = controller.startMining();
+
+            // Effective cost = ceil(10 * 1.5) = 15, but power is only 12
+            expect(result).toBe(false);
+            expect(events[0].type).toBe('mining_failed');
+        });
+
+        it('should apply yield bonus to mining output', () => {
+            state$ = new StateObserver(createInitialState({
+                asteroid: createTestAsteroid()
+            }));
+            const toolCtrl = createMockToolController({ yieldMultiplier: 1.5 });
+
+            // Use a spy on MiningSystem to verify bonuses are passed
+            const mockSystem = {
+                calculateYield: vi.fn().mockReturnValue({
+                    collected: { Fe: 90, Ni: 45, Co: 15 },
+                    totalAmount: 150
+                }),
+                capYieldToAvailableSpace: vi.fn().mockImplementation(
+                    (yield_: { collected: Record<string, number>; totalAmount: number }) => yield_
+                ),
+                findNewDiscoveries: vi.fn().mockReturnValue([]),
+                mergeIntoInventory: vi.fn().mockImplementation(
+                    (_current: Record<string, number>, collected: Record<string, number>) => collected
+                ),
+                calculateNewHoldUsed: vi.fn().mockReturnValue(150),
+                calculateSellValue: vi.fn()
+            };
+
+            controller = new MiningController(state$, prices, toolCtrl, mockSystem);
+
+            controller.startMining();
+            vi.advanceTimersByTime(150);
+
+            // Verify calculateYield was called with tool bonuses
+            expect(mockSystem.calculateYield).toHaveBeenCalledWith(
+                createTestAsteroid(),
+                expect.objectContaining({ yieldMultiplier: 1.5 })
+            );
+
+            const state = state$.getState();
+            expect(state.inventory.Fe).toBe(90);
+            expect(state.inventory.Ni).toBe(45);
+            expect(state.inventory.Co).toBe(15);
         });
     });
 });

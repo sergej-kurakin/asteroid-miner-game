@@ -23,6 +23,8 @@ describe('PowerButton', () => {
         mining_progress: 0,
         power: 50,
         power_capacity: 100,
+        equipped_tools: [],
+        tools_owned: [],
         ...overrides,
     });
 
