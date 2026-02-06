@@ -1,4 +1,5 @@
 import type { Asteroid } from '../asteroids/interfaces';
+import type { EquippedTool } from '../tools/interfaces';
 
 export interface GameState {
     credits: number;
@@ -12,4 +13,6 @@ export interface GameState {
     mining_progress: number;
     power: number;
     power_capacity: number;
+    equipped_tools: EquippedTool[];
+    tools_owned: string[];
 }
