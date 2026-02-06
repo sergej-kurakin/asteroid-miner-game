@@ -29,7 +29,7 @@ body {
     justify-content: center;
     align-items: center;
 
-    min-width: 900px;
+    min-width: 1100px;
     min-height: 900px;
 }
 
@@ -55,14 +55,14 @@ body::before {
 /* Main Container */
 .container {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 1fr 2fr 1fr 1fr;
     gap: 15px;
     width: 95vw;
-    max-width: 1400px;
+    max-width: 1800px;
     height: 90vh;
     padding: 15px;
 
-    min-width: 900px;
+    min-width: 1100px;
     min-height: 900px;
 }
 
@@ -88,6 +88,11 @@ body::before {
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(0, 255, 136, 0.3);
     text-shadow: 0 0 10px var(--primary);
+}
+
+/* EQUIPMENT PANEL - Ship & Tools */
+.equipment-panel {
+    overflow-y: auto;
 }
 
 /* LEFT PANEL - Gauges & Controls */
@@ -734,7 +739,7 @@ body::before {
 }
 
 .tool-shop {
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
     padding-right: 4px;
 }
