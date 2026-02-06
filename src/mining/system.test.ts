@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { MiningSystem } from './system';
 import type { Asteroid } from '../asteroids/interfaces';
+import type { ToolBonuses } from '../tools/interfaces';
 
 describe('MiningSystem', () => {
     const system = new MiningSystem();
@@ -53,8 +54,8 @@ describe('MiningSystem', () => {
 
             const result = system.calculateYield(asteroid);
 
-            // 1% of 5 = 0.05 -> rounds to 0, should be excluded
-            expect(result.collected.Fe).toBe(5); // 90% of 5 = 4.5 -> rounds to 5
+            // 1% of 5 = 0.05 -> floor to 0, should be excluded
+            expect(result.collected.Fe).toBe(4); // 90% of 5 = 4.5 -> floor to 4
             expect(result.collected.Co).toBeUndefined();
         });
     });
@@ -176,6 +177,98 @@ describe('MiningSystem', () => {
             const result = system.calculateNewHoldUsed(0, 30, 100);
 
             expect(result).toBe(30);
+        });
+    });
+
+    describe('calculateYield with tool bonuses', () => {
+        it('should apply yield multiplier to all elements', () => {
+            const asteroid: Asteroid = {
+                type: 'iron_nickel',
+                size: 'medium',
+                composition: { Fe: 60, Ni: 30, Co: 10 },
+                totalYield: 100,
+                miningTime: 3000,
+                visualDiameter: 80
+            };
+            const bonuses: ToolBonuses = {
+                yieldMultiplier: 1.20,
+                rareMultiplier: 1.0,
+                powerCostMultiplier: 1.0
+            };
+
+            const result = system.calculateYield(asteroid, bonuses);
+
+            // Fe: floor(60/100 * 100 * 1.2) = floor(72) = 72
+            // Ni: floor(30/100 * 100 * 1.2) = floor(36) = 36
+            // Co: floor(10/100 * 100 * 1.2) = floor(12) = 12 (rare, but rareMultiplier=1.0)
+            expect(result.collected.Fe).toBe(72);
+            expect(result.collected.Ni).toBe(36);
+            expect(result.collected.Co).toBe(12);
+            expect(result.totalAmount).toBe(120);
+        });
+
+        it('should apply rare multiplier to rare elements only', () => {
+            const asteroid: Asteroid = {
+                type: 'iron_nickel',
+                size: 'medium',
+                composition: { Fe: 60, Co: 20, Cr: 20 },
+                totalYield: 100,
+                miningTime: 3000,
+                visualDiameter: 80
+            };
+            const bonuses: ToolBonuses = {
+                yieldMultiplier: 1.0,
+                rareMultiplier: 1.50,
+                powerCostMultiplier: 1.0
+            };
+
+            const result = system.calculateYield(asteroid, bonuses);
+
+            // Fe: floor(60) = 60 (not rare)
+            // Co: floor(20 * 1.5) = floor(30) = 30 (rare)
+            // Cr: floor(20 * 1.5) = floor(30) = 30 (rare)
+            expect(result.collected.Fe).toBe(60);
+            expect(result.collected.Co).toBe(30);
+            expect(result.collected.Cr).toBe(30);
+        });
+
+        it('should stack yield and rare multipliers', () => {
+            const asteroid: Asteroid = {
+                type: 'iron_nickel',
+                size: 'medium',
+                composition: { Fe: 50, Mn: 50 },
+                totalYield: 100,
+                miningTime: 3000,
+                visualDiameter: 80
+            };
+            const bonuses: ToolBonuses = {
+                yieldMultiplier: 1.10,
+                rareMultiplier: 1.20,
+                powerCostMultiplier: 1.0
+            };
+
+            const result = system.calculateYield(asteroid, bonuses);
+
+            // Fe: floor(50 * 1.1) = floor(55) = 55
+            // Mn: floor(50 * 1.1 * 1.2) = floor(66) = 66
+            expect(result.collected.Fe).toBe(55);
+            expect(result.collected.Mn).toBe(66);
+        });
+
+        it('should return normal yield when no bonuses provided', () => {
+            const asteroid: Asteroid = {
+                type: 'iron_nickel',
+                size: 'medium',
+                composition: { Fe: 60, Ni: 40 },
+                totalYield: 100,
+                miningTime: 3000,
+                visualDiameter: 80
+            };
+
+            const result = system.calculateYield(asteroid);
+
+            expect(result.collected.Fe).toBe(60);
+            expect(result.collected.Ni).toBe(40);
         });
     });
 

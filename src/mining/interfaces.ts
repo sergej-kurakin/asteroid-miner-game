@@ -1,4 +1,5 @@
 import type { Asteroid } from '../asteroids/interfaces';
+import type { ToolBonuses } from '../tools/interfaces';
 
 // Result of yield calculation
 export interface MiningYield {
@@ -29,7 +30,7 @@ export interface ElementPrices {
 
 // Interface for pure calculation methods
 export interface IMiningSystem {
-    calculateYield(asteroid: Asteroid): MiningYield;
+    calculateYield(asteroid: Asteroid, toolBonuses?: ToolBonuses): MiningYield;
     capYieldToAvailableSpace(
         miningYield: MiningYield,
         availableSpace: number

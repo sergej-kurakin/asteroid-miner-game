@@ -1,4 +1,6 @@
 import type { Asteroid } from '../asteroids/interfaces';
+import { RARE_ELEMENTS } from '../asteroids/constants';
+import type { ToolBonuses } from '../tools/interfaces';
 import type {
     IMiningSystem,
     MiningYield,
@@ -7,15 +9,22 @@ import type {
 } from './interfaces';
 
 export class MiningSystem implements IMiningSystem {
-    calculateYield(asteroid: Asteroid): MiningYield {
+    calculateYield(asteroid: Asteroid, toolBonuses?: ToolBonuses): MiningYield {
         const collected: { [element: string]: number } = {};
         let totalAmount = 0;
 
+        const yieldMul = toolBonuses?.yieldMultiplier ?? 1.0;
+        const rareMul = toolBonuses?.rareMultiplier ?? 1.0;
+
         for (const [element, percent] of Object.entries(asteroid.composition)) {
-            const amount = Math.round((percent / 100) * asteroid.totalYield);
-            if (amount > 0) {
-                collected[element] = amount;
-                totalAmount += amount;
+            let amount = (percent / 100) * asteroid.totalYield * yieldMul;
+            if (RARE_ELEMENTS.includes(element)) {
+                amount *= rareMul;
+            }
+            const rounded = Math.floor(amount);
+            if (rounded > 0) {
+                collected[element] = rounded;
+                totalAmount += rounded;
             }
         }
 
