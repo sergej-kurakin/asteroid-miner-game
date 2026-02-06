@@ -16,3 +16,4 @@ export { StatusDisplay } from './components/status-display';
 export { DiscoveryAlert } from './components/discovery-alert';
 export { ControlButtons, type ControlHandlers } from './components/control-buttons';
 export { AsteroidView } from './components/asteroid-view';
+export { ToolPanel, type ToolPanelHandlers } from './components/tool-panel';
