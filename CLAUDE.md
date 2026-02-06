@@ -17,23 +17,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 src/
-├── game.ts              # Main game logic, UI rendering, event handlers
+├── game.ts              # Main game loop, wiring controllers and UI
 ├── asteroids/           # Asteroid generation system
-│   ├── interfaces.ts    # Type definitions
-│   ├── constants.ts     # Size/type configurations, spawn rates
-│   ├── utils.ts         # Random selection, normalization
-│   ├── generator.ts     # Main generation logic
+│   ├── interfaces.ts    # Type definitions (Asteroid, AsteroidType, etc.)
+│   ├── constants.ts     # Size/type configs, spawn rates per ship level
+│   ├── random-provider.ts # Seeded random for testability
+│   ├── generator.ts     # Weighted random asteroid generation
+│   ├── controller.ts    # AsteroidController (scan logic)
 │   └── index.ts         # Public API
-├── ships/               # Ship configurations
-│   ├── interfaces.ts    # Ship type definitions
-│   └── ships.ts         # 5 tier definitions
+├── mining/              # Mining & selling system
+│   ├── interfaces.ts    # IMiningSystem, IMiningController, events
+│   ├── constants.ts     # Mining constants
+│   ├── system.ts        # Pure yield/sell calculations
+│   ├── controller.ts    # MiningController (start/cancel/sell)
+│   └── index.ts
+├── ships/               # Ship progression
+│   ├── interfaces.ts    # ShipData, IShipController
+│   ├── constants.ts     # SHIPS array (5 tiers), level limits
+│   ├── controller.ts    # ShipController (upgrade logic)
+│   └── index.ts
+├── tools/               # Tool equip & purchase system
+│   ├── interfaces.ts    # ToolData, IToolController, bonuses
+│   ├── constants.ts     # TOOLS array (10 tools, 4 tiers)
+│   ├── controller.ts    # ToolController (buy/equip/unequip)
+│   └── index.ts
+├── power/               # Power management
+│   ├── interfaces.ts    # IPowerController
+│   ├── constants.ts     # Power costs/refill rates
+│   ├── controller.ts    # PowerController (buy power)
+│   └── index.ts
 ├── config/              # Game configuration
 │   ├── interfaces.ts    # Config types
 │   └── config.ts        # Elements, prices, settings
-├── gamestate/           # State management
+├── gamestate/           # Reactive state management
 │   ├── interfaces.ts    # GameState type
-│   ├── observer.ts      # StateObserver for reactive state
-│   └── observer.test.ts # Unit tests for StateObserver
+│   ├── observer.ts      # StateObserver (Observable pattern)
+│   └── index.ts
+├── ui/                  # UI components (HTML DOM)
+│   ├── interfaces.ts    # UIComponent, GaugeConfig types
+│   ├── base-component.ts # BaseComponent (subscribe, cleanup)
+│   ├── utils.ts         # formatNumber, formatCredits
+│   ├── components/      # Individual UI components
+│   │   ├── gauge.ts           # Power/laser/hold gauges
+│   │   ├── credits-display.ts # Credits counter
+│   │   ├── inventory-list.ts  # Inventory panel
+│   │   ├── composition-grid.ts # Asteroid composition
+│   │   ├── ship-info.ts       # Ship status & upgrade
+│   │   ├── power-button.ts    # Buy power button
+│   │   ├── status-display.ts  # Status messages
+│   │   ├── discovery-alert.ts # New element alerts
+│   │   ├── control-buttons.ts # SCAN/MINE/SELL buttons
+│   │   ├── asteroid-view.ts   # Asteroid visual display
+│   │   └── tool-panel.ts      # Tool buy/equip UI
+│   └── index.ts
 └── persistence.ts       # Save/load to LocalStorage
 ```
 
@@ -56,28 +92,37 @@ The build creates a single bundled JavaScript file (`dist/game.js`) from all Typ
 
 ### Game State Model
 
-The central `gameState` object tracks all player progress:
+The central `GameState` (in `src/gamestate/interfaces.ts`) is wrapped in a `StateObserver` (Observable pattern). Controllers read/write state via `observer.getState()` and `observer.setState()`, and UI components subscribe to changes.
+
+Fields:
 - `credits` - Currency for upgrades
 - `current_ship_level` - 1-5 (Scout → Titan)
 - `discovered_elements` - Array of element symbols found
-- `equipped_tools` - Array of tool objects with slot assignments
-- `tools_owned` - Object tracking purchased tools
-- `asteroid` - Current asteroid being mined (type, size, composition)
+- `equipped_tools` - Array of `EquippedTool` (toolId + slot index)
+- `tools_owned` - Array of owned tool ID strings
+- `asteroid` - Current asteroid (type, size, composition) or null
 - `inventory` - Object mapping element symbols to amounts
 - `hold_capacity`, `hold_used` - Cargo limits
-- `power`, `is_mining`, `mining_progress` - Mining state
+- `power`, `power_capacity` - Power cell state
+- `is_mining`, `mining_progress` - Mining state
 
 ### Core Systems
 
-**Ship Progression (5 tiers)**:
+**Ship Progression (5 tiers)** (`src/ships/`):
 - Scout (free) → Prospector (2k) → Harvester (8k) → Industrial (25k) → Titan (75k)
-- Each tier increases: hold capacity, mining speed, tool slots, asteroid size access
-- Defined in `src/ships/ships.ts`
+- Each tier increases: hold capacity, power cell, mining speed, tool slots, asteroid size access
+- `ShipController` handles upgrade logic; updates `hold_capacity` and `power_capacity` on upgrade
 
-**Tool System**:
+**Tool System** (`src/tools/`):
+- 10 tools across 4 tiers: Tier 0 (free default), Tier 1 (500-800₹), Tier 2 (2000-3000₹), Tier 3 (8000-12000₹)
 - Tools purchased and equipped in slots (1-4 slots based on ship)
-- Effects stack: yield bonuses, rare element bonuses, power costs
-- Three tiers: Basic (500-800₹), Mid (2000-3000₹), Endgame (8000-12000₹)
+- Effects stack: `yieldBonus`, `rareBonus`, `powerCostBonus`
+- `ToolController` handles buy/equip/unequip; `getToolBonuses()` aggregates equipped tool effects
+
+**Power System** (`src/power/`):
+- Power consumed when mining (base cost modified by tool `powerCostBonus`)
+- `PowerController` handles buying power (costs credits)
+- `power_capacity` scales with ship tier
 
 **Asteroid System** (`src/asteroids/`):
 - **6 sizes**: Tiny → Small → Medium → Large → Massive → Colossal
@@ -101,10 +146,10 @@ The central `gameState` object tracks all player progress:
 ## Implementation Priorities
 
 Current development order per `docs/PROJECT_BRIEF.md`:
-1. ✅ Ship upgrade system (implemented)
-2. ✅ Asteroid type/size variety (implemented)
-3. Tool equipping system (in progress)
-4. Power management system
+1. ✅ Ship upgrade system
+2. ✅ Asteroid type/size variety
+3. ✅ Tool equipping system
+4. ✅ Power management system
 5. Polish and balancing
 
 ## Design References
@@ -148,18 +193,34 @@ Current development order per `docs/PROJECT_BRIEF.md`:
 
 ### Common Tasks
 
+**Add a new tool:**
+- Add `ToolData` entry to `TOOLS` array in `src/tools/constants.ts`
+- Assign a unique `id`, `tier`, `cost`, and bonus values (`yieldBonus`, `rareBonus`, `powerCostBonus`)
+
 **Add a new asteroid type:**
 - Update `AsteroidType` in `src/asteroids/interfaces.ts`
 - Add configuration in `ASTEROID_TYPES` in `src/asteroids/constants.ts`
 - Update spawn rates in `SHIP_SPAWN_CONFIG`
 
 **Add a new ship tier:**
-- Add entry to `SHIPS` array in `src/ships/ships.ts`
+- Add entry to `SHIPS` array in `src/ships/constants.ts`
+- Update `MAX_SHIP_LEVEL` in `src/ships/constants.ts`
 - Update spawn probabilities in `src/asteroids/constants.ts`
 
 **Add a new element:**
 - Add to `elements` in `src/config/config.ts`
 - Add to relevant asteroid type compositions in `src/asteroids/constants.ts`
+
+**Add a new UI component:**
+- Create component file in `src/ui/components/`, extending `BaseComponent`
+- Use `subscribeToMultiple()` to react to state changes
+- Export from `src/ui/index.ts`
+- Wire up in `src/game.ts`
+
+**Add a new GameState field:**
+- Add field to `GameState` in `src/gamestate/interfaces.ts`
+- Add to `SaveData` and defaults in `src/persistence.ts`
+- Update `createInitialState()` in all test files (12+ files)
 
 ## Color Palette
 
