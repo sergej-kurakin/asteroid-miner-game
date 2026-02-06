@@ -15,63 +15,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Source Structure
 
-```
-src/
-├── game.ts              # Main game loop, wiring controllers and UI
-├── asteroids/           # Asteroid generation system
-│   ├── interfaces.ts    # Type definitions (Asteroid, AsteroidType, etc.)
-│   ├── constants.ts     # Size/type configs, spawn rates per ship level
-│   ├── random-provider.ts # Seeded random for testability
-│   ├── generator.ts     # Weighted random asteroid generation
-│   ├── controller.ts    # AsteroidController (scan logic)
-│   └── index.ts         # Public API
-├── mining/              # Mining & selling system
-│   ├── interfaces.ts    # IMiningSystem, IMiningController, events
-│   ├── constants.ts     # Mining constants
-│   ├── system.ts        # Pure yield/sell calculations
-│   ├── controller.ts    # MiningController (start/cancel/sell)
-│   └── index.ts
-├── ships/               # Ship progression
-│   ├── interfaces.ts    # ShipData, IShipController
-│   ├── constants.ts     # SHIPS array (5 tiers), level limits
-│   ├── controller.ts    # ShipController (upgrade logic)
-│   └── index.ts
-├── tools/               # Tool equip & purchase system
-│   ├── interfaces.ts    # ToolData, IToolController, bonuses
-│   ├── constants.ts     # TOOLS array (10 tools, 4 tiers)
-│   ├── controller.ts    # ToolController (buy/equip/unequip)
-│   └── index.ts
-├── power/               # Power management
-│   ├── interfaces.ts    # IPowerController
-│   ├── constants.ts     # Power costs/refill rates
-│   ├── controller.ts    # PowerController (buy power)
-│   └── index.ts
-├── config/              # Game configuration
-│   ├── interfaces.ts    # Config types
-│   └── config.ts        # Elements, prices, settings
-├── gamestate/           # Reactive state management
-│   ├── interfaces.ts    # GameState type
-│   ├── observer.ts      # StateObserver (Observable pattern)
-│   └── index.ts
-├── ui/                  # UI components (HTML DOM)
-│   ├── interfaces.ts    # UIComponent, GaugeConfig types
-│   ├── base-component.ts # BaseComponent (subscribe, cleanup)
-│   ├── utils.ts         # formatNumber, formatCredits
-│   ├── components/      # Individual UI components
-│   │   ├── gauge.ts           # Power/laser/hold gauges
-│   │   ├── credits-display.ts # Credits counter
-│   │   ├── inventory-list.ts  # Inventory panel
-│   │   ├── composition-grid.ts # Asteroid composition
-│   │   ├── ship-info.ts       # Ship status & upgrade
-│   │   ├── power-button.ts    # Buy power button
-│   │   ├── status-display.ts  # Status messages
-│   │   ├── discovery-alert.ts # New element alerts
-│   │   ├── control-buttons.ts # SCAN/MINE/SELL buttons
-│   │   ├── asteroid-view.ts   # Asteroid visual display
-│   │   └── tool-panel.ts      # Tool buy/equip UI
-│   └── index.ts
-└── persistence.ts       # Save/load to LocalStorage
-```
+Each module in `src/` follows the pattern: `interfaces.ts` → `constants.ts` → logic files → `controller.ts` → `index.ts`.
+
+- `game.ts` — Main game loop, wires controllers and UI
+- `asteroids/` — Asteroid generation, weighted random by ship level
+- `mining/` — Mining yield calculations (`system.ts`) and mining flow (`controller.ts`)
+- `ships/` — Ship tiers, upgrade logic
+- `tools/` — Tool buy/equip/unequip, bonus aggregation
+- `power/` — Power purchase and capacity
+- `config/` — Elements, prices, settings
+- `gamestate/` — `GameState` type and `StateObserver` (Observable pattern)
+- `ui/` — DOM components extending `BaseComponent`, in `ui/components/`
+- `persistence.ts` — Save/load to LocalStorage
 
 ### Build Process
 
