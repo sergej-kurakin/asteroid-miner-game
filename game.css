@@ -681,6 +681,174 @@ body::before {
     font-style: italic;
 }
 
+/* TOOL PANEL */
+.tool-section {
+    margin-bottom: 15px;
+}
+
+.tool-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    color: var(--accent);
+}
+
+.tool-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 136, 0, 0.6);
+    margin-bottom: 8px;
+}
+
+.tool-slots {
+    margin-bottom: 12px;
+}
+
+.tool-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.tool-slot-filled {
+    background: rgba(255, 136, 0, 0.1);
+    border: 1px solid rgba(255, 136, 0, 0.4);
+    color: var(--accent);
+}
+
+.tool-slot-empty {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px dashed rgba(255, 136, 0, 0.2);
+    color: rgba(255, 136, 0, 0.3);
+}
+
+.tool-slot-name {
+    font-family: 'Space Mono', monospace;
+}
+
+.tool-shop {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.tool-shop::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tool-shop::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+}
+
+.tool-shop::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+.tool-tier-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 136, 0, 0.5);
+    margin-top: 8px;
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid rgba(255, 136, 0, 0.15);
+}
+
+.tool-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 136, 0, 0.15);
+    border-radius: 4px;
+}
+
+.tool-item.tool-owned {
+    border-color: rgba(255, 136, 0, 0.3);
+}
+
+.tool-item.tool-equipped {
+    border-color: var(--accent);
+    background: rgba(255, 136, 0, 0.08);
+}
+
+.tool-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 2px;
+}
+
+.tool-stats {
+    display: flex;
+    gap: 8px;
+    font-size: 9px;
+    color: rgba(255, 136, 0, 0.5);
+}
+
+.tool-stat {
+    white-space: nowrap;
+}
+
+.btn-tool-action {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.btn-tool-action:not(:disabled):hover {
+    background: rgba(255, 136, 0, 0.2);
+    box-shadow: 0 0 8px rgba(255, 136, 0, 0.3);
+}
+
+.btn-tool-action:disabled,
+.btn-tool-action.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-unequip {
+    font-size: 10px;
+    padding: 2px 6px;
+    color: #ff4466;
+    border-color: #ff4466;
+}
+
+.btn-unequip:not(:disabled):hover {
+    background: rgba(255, 68, 102, 0.2);
+    box-shadow: 0 0 8px rgba(255, 68, 102, 0.3);
+}
+
+.tool-status {
+    font-size: 9px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+
 .btn-sell {
     margin-top: 15px;
     color: var(--primary);
