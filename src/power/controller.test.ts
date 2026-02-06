@@ -19,7 +19,9 @@ describe('PowerController', () => {
             asteroid: null,
             is_mining: false,
             mining_progress: 0,
-            power_capacity: 100
+            power_capacity: 100,
+            equipped_tools: [],
+            tools_owned: []
         });
         powerController = new PowerController(gameState$);
     });
