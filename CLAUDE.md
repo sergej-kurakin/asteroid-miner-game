@@ -100,7 +100,7 @@ The central `gameState` object tracks all player progress:
 
 ## Implementation Priorities
 
-Current development order per PROJECT_BRIEF.md:
+Current development order per `docs/PROJECT_BRIEF.md`:
 1. ✅ Ship upgrade system (implemented)
 2. ✅ Asteroid type/size variety (implemented)
 3. Tool equipping system (in progress)
@@ -109,10 +109,11 @@ Current development order per PROJECT_BRIEF.md:
 
 ## Design References
 
-- `PROJECT_BRIEF.md` - Complete game spec, data models, UI layout
-- `ship_progression_design.md` - Ship tiers, tool stats, power system
-- `asteroid_system_design.md` - Asteroid types, sizes, compositions, spawn rates
-- `TYPESCRIPT_SETUP.md` - Build system and architecture details
+- `docs/PROJECT_BRIEF.md` - Complete game spec, data models, UI layout
+- `docs/ship_progression_design.md` - Ship tiers, tool stats, power system
+- `docs/asteroid_system_design.md` - Asteroid types, sizes, compositions, spawn rates
+- `docs/TYPESCRIPT_SETUP.md` - Build system and architecture details
+- `docs/POWER_SYSTEM.md` - Power management system design
 
 ## Development Guidelines
 
