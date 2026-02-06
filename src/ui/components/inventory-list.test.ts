@@ -26,6 +26,8 @@ describe('InventoryList', () => {
         mining_progress: 0,
         power: 100,
         power_capacity: 100,
+        equipped_tools: [],
+        tools_owned: [],
         ...overrides,
     });
 
