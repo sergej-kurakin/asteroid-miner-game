@@ -2,6 +2,7 @@
 // Handles saving and loading game state to localStorage
 
 import type { GameState } from './gamestate/interfaces';
+import type { EquippedTool } from './tools/interfaces';
 
 export interface SaveData {
     credits: number;
@@ -12,6 +13,8 @@ export interface SaveData {
     hold_capacity: number;
     power: number;
     power_capacity: number;
+    equipped_tools: EquippedTool[];
+    tools_owned: string[];
 }
 
 const STORAGE_KEY = 'asteroidMiner';
@@ -25,8 +28,9 @@ export function saveGameState(state: Readonly<GameState>): void {
         hold_used: state.hold_used,
         hold_capacity: state.hold_capacity,
         power: state.power,
-        power_capacity: state.power_capacity
-
+        power_capacity: state.power_capacity,
+        equipped_tools: state.equipped_tools,
+        tools_owned: state.tools_owned
     };
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -51,7 +55,9 @@ export function loadGameState(): GameState {
                 is_mining: false,
                 mining_progress: 0,
                 power: data.power || 100,
-                power_capacity: data.power_capacity || 100
+                power_capacity: data.power_capacity || 100,
+                equipped_tools: data.equipped_tools || [],
+                tools_owned: data.tools_owned || []
             };
         }
     } catch (e) {
@@ -68,6 +74,8 @@ export function loadGameState(): GameState {
         is_mining: false,
         mining_progress: 0,
         power: 100,
-        power_capacity: 100
+        power_capacity: 100,
+        equipped_tools: [],
+        tools_owned: []
     };
 }
