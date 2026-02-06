@@ -80,7 +80,7 @@ export class GaugeComponent extends BaseComponent {
 
     private renderPowerGauge(state: Readonly<GameState>): void {
         const percent = (state.power / state.power_capacity) * 100;
-        this.valueEl!.textContent = `${Math.round(percent)}%`;
+        this.valueEl!.textContent = `${Math.round(state.power)} / ${state.power_capacity}`;
         this.fillEl!.style.width = `${percent}%`;
     }
 
