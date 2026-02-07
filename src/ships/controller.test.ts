@@ -170,7 +170,9 @@ describe('ShipController', () => {
 
             const result = controller.upgrade();
             expect(result.success).toBe(false);
-            expect(result.error).toBe('max_level_reached');
+            if (!result.success) {
+                expect(result.error).toBe('max_level_reached');
+            }
         });
 
         it('returns error when insufficient credits', () => {
@@ -179,7 +181,9 @@ describe('ShipController', () => {
 
             const result = controller.upgrade();
             expect(result.success).toBe(false);
-            expect(result.error).toBe('insufficient_credits');
+            if (!result.success) {
+                expect(result.error).toBe('insufficient_credits');
+            }
         });
 
         it('succeeds and updates state when affordable', () => {
@@ -193,8 +197,9 @@ describe('ShipController', () => {
             const result = controller.upgrade();
 
             expect(result.success).toBe(true);
-            expect(result.newShip).toBeDefined();
-            expect(result.newShip!.id).toBe(2);
+            if (result.success) {
+                expect(result.newShip.id).toBe(2);
+            }
             expect(mockObservable.setState).toHaveBeenCalled();
         });
 

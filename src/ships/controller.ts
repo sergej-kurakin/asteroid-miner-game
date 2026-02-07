@@ -1,7 +1,7 @@
-import type { Observable } from '../gamestate';
-import type { GameState } from '../gamestate/interfaces';
+import type { Observable, GameState } from '../gamestate';
 import type { ShipData, IShipController, UpgradeResult } from './interfaces';
 import { SHIPS, MAX_SHIP_LEVEL } from './constants';
+import { UpgradeShipCommand } from './commands';
 
 export class ShipController implements IShipController {
     constructor(private readonly state$: Observable<GameState>) {}
@@ -53,25 +53,11 @@ export class ShipController implements IShipController {
             return { success: false, error: 'insufficient_credits' };
         }
 
-        // Calculate new hold_used proportionally
-        const currentPercent = state.hold_used / state.hold_capacity;
-        const newHoldUsed = Math.min(
-            Math.floor(currentPercent * nextShip.holdCapacity),
-            nextShip.holdCapacity
-        );
+        if (state.is_mining) {
+            return { success: false, error: 'is_mining' };
+        }
 
-        // Cap power to new ship's powerCell
-        const newPower = Math.min(state.power, nextShip.powerCell);
-
-        this.state$.setState({
-            credits: state.credits - nextShip.cost,
-            current_ship_level: nextShip.id,
-            hold_capacity: nextShip.holdCapacity,
-            hold_used: newHoldUsed,
-            power: newPower,
-            power_capacity: nextShip.powerCell,
-        });
-
-        return { success: true, newShip: nextShip };
+        const newShip = new UpgradeShipCommand(this.state$, nextShip).execute();
+        return { success: true, newShip };
     }
 }
