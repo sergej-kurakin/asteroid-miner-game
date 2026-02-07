@@ -4,15 +4,9 @@ import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { Asteroid } from '../asteroids/interfaces';
 import type { IToolController } from '../tools/interfaces';
-import type { MiningEvent, ElementPrices } from './interfaces';
+import type { MiningEvent } from './interfaces';
 
 describe('MiningController', () => {
-    const prices: ElementPrices = {
-        Fe: 50,
-        Ni: 150,
-        Co: 200
-    };
-
     const createTestAsteroid = (): Asteroid => ({
         type: 'iron_nickel',
         size: 'medium',
@@ -53,7 +47,7 @@ describe('MiningController', () => {
     describe('startMining', () => {
         it('should return false when no asteroid is present', () => {
             state$ = new StateObserver(createInitialState());
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const result = controller.startMining();
 
@@ -66,7 +60,7 @@ describe('MiningController', () => {
                 asteroid: createTestAsteroid(),
                 is_mining: true
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const result = controller.startMining();
 
@@ -77,7 +71,7 @@ describe('MiningController', () => {
             state$ = new StateObserver(createInitialState({
                 asteroid: createTestAsteroid()
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const result = controller.startMining();
 
@@ -90,7 +84,7 @@ describe('MiningController', () => {
             state$ = new StateObserver(createInitialState({
                 asteroid: createTestAsteroid()
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             controller.subscribe(event => events.push(event));
@@ -106,7 +100,7 @@ describe('MiningController', () => {
                 asteroid: createTestAsteroid(),
                 power: 50
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             controller.startMining();
 
@@ -118,7 +112,7 @@ describe('MiningController', () => {
                 asteroid: createTestAsteroid(),
                 power: 9
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             controller.subscribe(event => events.push(event));
@@ -143,7 +137,7 @@ describe('MiningController', () => {
                 is_mining: true,
                 mining_progress: 0.5
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             controller.cancelMining();
 
@@ -153,7 +147,7 @@ describe('MiningController', () => {
 
         it('should do nothing when not mining', () => {
             state$ = new StateObserver(createInitialState());
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             // Should not throw
             controller.cancelMining();
@@ -165,7 +159,7 @@ describe('MiningController', () => {
     describe('isMining', () => {
         it('should return current mining state', () => {
             state$ = new StateObserver(createInitialState({ is_mining: true }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             expect(controller.isMining()).toBe(true);
         });
@@ -174,37 +168,9 @@ describe('MiningController', () => {
     describe('getProgress', () => {
         it('should return current progress', () => {
             state$ = new StateObserver(createInitialState({ mining_progress: 0.75 }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             expect(controller.getProgress()).toBe(0.75);
-        });
-    });
-
-    describe('sellResources', () => {
-        it('should sell inventory and return result', () => {
-            state$ = new StateObserver(createInitialState({
-                inventory: { Fe: 10, Ni: 5 },
-                hold_used: 15
-            }));
-            controller = new MiningController(state$, prices);
-
-            const result = controller.sellResources();
-
-            expect(result).not.toBeNull();
-            expect(result!.totalValue).toBe(10 * 50 + 5 * 150); // 1250
-            expect(state$.getState().credits).toBe(1000 + 1250);
-            expect(state$.getState().inventory).toEqual({});
-            expect(state$.getState().hold_used).toBe(0);
-        });
-
-        it('should return null for empty inventory', () => {
-            state$ = new StateObserver(createInitialState());
-            controller = new MiningController(state$, prices);
-
-            const result = controller.sellResources();
-
-            expect(result).toBeNull();
-            expect(state$.getState().credits).toBe(1000);
         });
     });
 
@@ -213,7 +179,7 @@ describe('MiningController', () => {
             state$ = new StateObserver(createInitialState({
                 asteroid: createTestAsteroid()
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             controller.subscribe(event => events.push(event));
@@ -227,7 +193,7 @@ describe('MiningController', () => {
             state$ = new StateObserver(createInitialState({
                 asteroid: createTestAsteroid()
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             const unsubscribe = controller.subscribe(event => events.push(event));
@@ -245,7 +211,7 @@ describe('MiningController', () => {
                 asteroid: createTestAsteroid(),
                 discovered_elements: ['Fe'] // Already discovered Fe
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             controller.subscribe(event => events.push(event));
@@ -267,7 +233,7 @@ describe('MiningController', () => {
                 asteroid: createTestAsteroid(),
                 discovered_elements: []
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             controller.startMining();
 
@@ -286,7 +252,7 @@ describe('MiningController', () => {
                 inventory: { Fe: 10 }, // Start with some Fe
                 hold_used: 10
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             controller.startMining();
             vi.advanceTimersByTime(150);
@@ -306,7 +272,7 @@ describe('MiningController', () => {
             state$ = new StateObserver(createInitialState({
                 asteroid: createTestAsteroid()
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             controller.subscribe(event => events.push(event));
@@ -329,7 +295,7 @@ describe('MiningController', () => {
                 hold_capacity: 100,
                 hold_used: 90 // Only 10kg space available
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             const events: MiningEvent[] = [];
             controller.subscribe(event => events.push(event));
@@ -363,7 +329,7 @@ describe('MiningController', () => {
                 hold_capacity: 100,
                 hold_used: 100 // No space available
             }));
-            controller = new MiningController(state$, prices);
+            controller = new MiningController(state$);
 
             controller.startMining();
             vi.advanceTimersByTime(150);
@@ -402,7 +368,7 @@ describe('MiningController', () => {
                 power: 50
             }));
             const toolCtrl = createMockToolController({ powerCostMultiplier: 1.5 });
-            controller = new MiningController(state$, prices, toolCtrl);
+            controller = new MiningController(state$, toolCtrl);
 
             controller.startMining();
 
@@ -416,7 +382,7 @@ describe('MiningController', () => {
                 power: 12
             }));
             const toolCtrl = createMockToolController({ powerCostMultiplier: 1.5 });
-            controller = new MiningController(state$, prices, toolCtrl);
+            controller = new MiningController(state$, toolCtrl);
 
             const events: MiningEvent[] = [];
             controller.subscribe(e => events.push(e));
@@ -447,11 +413,10 @@ describe('MiningController', () => {
                 mergeIntoInventory: vi.fn().mockImplementation(
                     (_current: Record<string, number>, collected: Record<string, number>) => collected
                 ),
-                calculateNewHoldUsed: vi.fn().mockReturnValue(150),
-                calculateSellValue: vi.fn()
+                calculateNewHoldUsed: vi.fn().mockReturnValue(150)
             };
 
-            controller = new MiningController(state$, prices, toolCtrl, mockSystem);
+            controller = new MiningController(state$, toolCtrl, mockSystem);
 
             controller.startMining();
             vi.advanceTimersByTime(150);

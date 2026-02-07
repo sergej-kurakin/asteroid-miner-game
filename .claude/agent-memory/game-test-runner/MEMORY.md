@@ -1,20 +1,20 @@
 # Game Test Runner - Agent Memory
 
-## Test Suite Baseline (updated 2026-02-07, `another-refatoring` branch)
-- **27 test files**, **408 tests total** (all passing)
+## Test Suite Baseline (updated 2026-02-08, `another-refatoring` branch)
+- **30 test files**, **412 tests total** (all passing)
 - Typecheck: clean (0 errors)
-- Test run duration: ~3.6s tests, ~5.9s wall clock
+- Test run duration: ~3.7s tests, ~5.1s wall clock
 - Vitest v4.0.18
 
-## Current Issues (as of 2026-02-07)
+## Current Issues (as of 2026-02-08)
 - None. All typechecks and tests pass.
 
-## Test File Inventory (27 files)
+## Test File Inventory (30 files)
 | File | Tests | Status |
 |------|-------|--------|
-| src/mining/system.test.ts | 26 | pass |
-| src/mining/commands.test.ts | 25 | pass |
-| src/mining/controller.test.ts | 23 | pass |
+| src/mining/system.test.ts | 22 | pass |
+| src/mining/commands.test.ts | 20 | pass |
+| src/mining/controller.test.ts | 21 | pass |
 | src/tools/controller.test.ts | 26 | pass |
 | src/tools/commands.test.ts | 13 | pass |
 | src/asteroids/generator.test.ts | 20 | pass |
@@ -24,6 +24,9 @@
 | src/ships/commands.test.ts | 11 | pass |
 | src/power/controller.test.ts | 12 | pass |
 | src/power/commands.test.ts | 8 | pass |
+| src/market/mediator.test.ts | 4 | pass |
+| src/market/commands.test.ts | 5 | pass |
+| src/market/market.test.ts | 6 | pass |
 | src/gamestate/observer.test.ts | 18 | pass |
 | src/persistence/transformer.test.ts | 9 | pass |
 | src/persistence/controller.test.ts | 4 | pass |
@@ -41,10 +44,11 @@
 | src/ui/components/status-display.test.ts | 6 | pass |
 
 ## Key Observations
+- New `src/market/` module added (mediator, commands, market) with 15 tests total
+- Mining module tests reduced (system 26->22, commands 25->20, controller 23->21) - selling logic moved to market
 - Persistence module stabilized (storage, transformer, controller all passing)
 - `Asteroid` interface includes `totalYield`, `miningTime`, `visualDiameter` fields
-- New `src/mining/commands.test.ts` added (25 tests) for mining command pattern
-- Slowest test files: tool-panel (~798ms), ship-info (~608ms), composition-grid (~424ms)
+- Slowest test files: tool-panel (~661ms), ship-info (~555ms), composition-grid (~429ms)
 - Non-UI tests run fast (<100ms each)
 - `npm run build` runs tests as part of pipeline (clean -> typecheck -> test -> bundle)
 

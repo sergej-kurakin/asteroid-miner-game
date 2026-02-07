@@ -3,9 +3,7 @@ import { RARE_ELEMENTS } from '../asteroids/constants';
 import type { ToolBonuses } from '../tools/interfaces';
 import type {
     IMiningSystem,
-    MiningYield,
-    SellResult,
-    ElementPrices
+    MiningYield
 } from './interfaces';
 
 export class MiningSystem implements IMiningSystem {
@@ -59,24 +57,6 @@ export class MiningSystem implements IMiningSystem {
         }
 
         return { collected: capped, totalAmount: newTotal };
-    }
-
-    calculateSellValue(
-        inventory: { [element: string]: number },
-        prices: ElementPrices
-    ): SellResult {
-        const itemsSold: { [element: string]: number } = {};
-        let totalValue = 0;
-
-        for (const [element, amount] of Object.entries(inventory)) {
-            if (amount > 0) {
-                const price = prices[element] ?? 0;
-                totalValue += amount * price;
-                itemsSold[element] = amount;
-            }
-        }
-
-        return { totalValue, itemsSold };
     }
 
     findNewDiscoveries(

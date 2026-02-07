@@ -1,14 +1,12 @@
 import type { Observable, GameState } from '../gamestate';
 import type { IToolController, ToolBonuses } from '../tools/interfaces';
-import { StartMiningCommand, CancelMiningCommand, CompleteMiningCommand, SellResourcesCommand } from './commands';
+import { StartMiningCommand, CancelMiningCommand, CompleteMiningCommand } from './commands';
 import { MINE_POWER_COST } from './constants';
 import type {
     IMiningController,
     IMiningSystem,
     MiningEvent,
-    MiningEventListener,
-    SellResult,
-    ElementPrices
+    MiningEventListener
 } from './interfaces';
 import { MiningSystem } from './system';
 
@@ -27,7 +25,6 @@ export class MiningController implements IMiningController {
 
     constructor(
         private readonly state$: Observable<GameState>,
-        private readonly prices: ElementPrices,
         private readonly toolController?: IToolController,
         system?: IMiningSystem
     ) {
@@ -85,17 +82,6 @@ export class MiningController implements IMiningController {
 
     getProgress(): number {
         return this.state$.getState().mining_progress;
-    }
-
-    sellResources(): SellResult | null {
-        const state = this.state$.getState();
-        const result = this.system.calculateSellValue(state.inventory, this.prices);
-
-        if (result.totalValue <= 0) {
-            return null;
-        }
-
-        return new SellResourcesCommand(this.state$, result).execute();
     }
 
     subscribe(listener: MiningEventListener): () => void {

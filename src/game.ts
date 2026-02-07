@@ -8,7 +8,8 @@ import { type GameState, StateObserver, type Observable } from './gamestate';
 import { ShipController } from './ships';
 import { CONFIG } from './config/config';
 import { createPersistenceController, type IPersistenceController } from './persistence';
-import { MiningController, type IMiningController, type MiningEvent, type ElementPrices } from './mining';
+import { MiningController, type IMiningController, type MiningEvent } from './mining';
+import { Market, type IMarket, type ElementPrices } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
 import {
@@ -38,6 +39,7 @@ let miningController: IMiningController;
 let powerController: IPowerController;
 let asteroidsController: IAsteroidsController;
 let toolController: IToolController;
+let market: IMarket;
 
 // ========================================
 // UI COMPONENTS
@@ -168,8 +170,8 @@ function handleStartMining(): void {
 // SELL RESOURCES
 // ========================================
 function handleSellResources(): void {
-    const result = miningController.sellResources();
-    if (result) {
+    const result = market.sellAll();
+    if (result.success) {
         statusDisplay.setMessage(`Sold for ${formatNumber(result.totalValue)} credits`);
         persistence.save(gameState$.getState());
     }
@@ -248,7 +250,8 @@ function init(): void {
     shipController = new ShipController(gameState$);
     powerController = new PowerController(gameState$);
     toolController = new ToolController(gameState$, shipController);
-    miningController = new MiningController(gameState$, elementPrices, toolController);
+    miningController = new MiningController(gameState$, toolController);
+    market = new Market(gameState$, elementPrices);
     asteroidsController = new AsteroidsController(gameState$);
 
     // Subscribe to mining events

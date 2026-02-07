@@ -1,6 +1,6 @@
 import type { Observable, Command, GameState } from '../gamestate';
 import type { ToolBonuses } from '../tools/interfaces';
-import type { IMiningSystem, CompleteMiningResult, SellResult } from './interfaces';
+import type { IMiningSystem, CompleteMiningResult } from './interfaces';
 
 /**
  * Deducts power and sets mining state to active.
@@ -99,29 +99,5 @@ export class CompleteMiningCommand implements Command<CompleteMiningResult> {
         });
 
         return { cappedYield, newDiscoveries };
-    }
-}
-
-/**
- * Adds sell value to credits and clears inventory.
- *
- * @precondition sellResult.totalValue > 0
- */
-export class SellResourcesCommand implements Command<SellResult> {
-    constructor(
-        private readonly state$: Observable<GameState>,
-        private readonly sellResult: SellResult
-    ) {}
-
-    execute(): SellResult {
-        const state = this.state$.getState();
-
-        this.state$.setState({
-            credits: state.credits + this.sellResult.totalValue,
-            inventory: {},
-            hold_used: 0
-        });
-
-        return this.sellResult;
     }
 }

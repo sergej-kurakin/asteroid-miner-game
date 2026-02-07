@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { StartMiningCommand, CancelMiningCommand, CompleteMiningCommand, SellResourcesCommand } from './commands';
+import { StartMiningCommand, CancelMiningCommand, CompleteMiningCommand } from './commands';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { Asteroid } from '../asteroids/interfaces';
@@ -38,7 +38,6 @@ const createMockSystem = (overrides?: Partial<IMiningSystem>): IMiningSystem => 
     findNewDiscoveries: vi.fn().mockReturnValue([]),
     mergeIntoInventory: vi.fn().mockImplementation((_cur, col) => col),
     calculateNewHoldUsed: vi.fn().mockReturnValue(100),
-    calculateSellValue: vi.fn(),
     ...overrides
 });
 
@@ -307,76 +306,3 @@ describe('CompleteMiningCommand', () => {
     });
 });
 
-describe('SellResourcesCommand', () => {
-    it('adds totalValue to credits', () => {
-        const state$ = new StateObserver(createTestState({
-            credits: 1000,
-            inventory: { Fe: 10 },
-            hold_used: 10
-        }));
-        const sellResult = { totalValue: 500, itemsSold: { Fe: 10 } };
-
-        new SellResourcesCommand(state$, sellResult).execute();
-
-        expect(state$.getState().credits).toBe(1500);
-    });
-
-    it('clears inventory', () => {
-        const state$ = new StateObserver(createTestState({
-            inventory: { Fe: 10, Ni: 5 },
-            hold_used: 15
-        }));
-        const sellResult = { totalValue: 500, itemsSold: { Fe: 10, Ni: 5 } };
-
-        new SellResourcesCommand(state$, sellResult).execute();
-
-        expect(state$.getState().inventory).toEqual({});
-    });
-
-    it('resets hold_used to 0', () => {
-        const state$ = new StateObserver(createTestState({ hold_used: 50 }));
-        const sellResult = { totalValue: 500, itemsSold: { Fe: 10 } };
-
-        new SellResourcesCommand(state$, sellResult).execute();
-
-        expect(state$.getState().hold_used).toBe(0);
-    });
-
-    it('returns the sellResult', () => {
-        const state$ = new StateObserver(createTestState({ inventory: { Fe: 10 } }));
-        const sellResult = { totalValue: 500, itemsSold: { Fe: 10 } };
-
-        const result = new SellResourcesCommand(state$, sellResult).execute();
-
-        expect(result).toBe(sellResult);
-    });
-
-    it('reads state at execute time, not construction time', () => {
-        const state$ = new StateObserver(createTestState({ credits: 1000 }));
-        const sellResult = { totalValue: 500, itemsSold: { Fe: 10 } };
-        const command = new SellResourcesCommand(state$, sellResult);
-
-        state$.setState({ credits: 3000 });
-        command.execute();
-
-        expect(state$.getState().credits).toBe(3500);
-    });
-
-    it('does not modify unrelated state properties', () => {
-        const state$ = new StateObserver(createTestState({
-            inventory: { Fe: 10 },
-            hold_used: 10,
-            power: 42,
-            is_mining: false,
-            discovered_elements: ['Fe']
-        }));
-        const sellResult = { totalValue: 500, itemsSold: { Fe: 10 } };
-
-        new SellResourcesCommand(state$, sellResult).execute();
-
-        const state = state$.getState();
-        expect(state.power).toBe(42);
-        expect(state.is_mining).toBe(false);
-        expect(state.discovered_elements).toEqual(['Fe']);
-    });
-});
