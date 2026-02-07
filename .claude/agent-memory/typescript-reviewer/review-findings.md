@@ -62,3 +62,23 @@ Clean, pattern-consistent extraction. No runtime bugs in normal usage. Main risk
 
 ### Verdict
 Clean extraction, no critical issues. All pre-review concerns (div-by-zero, is_mining guard) were addressed. Thorough test suite (11 tests). Main action items: add @precondition JSDoc and refactor UpgradeResult to discriminated union for consistency with BuyPowerResult.
+
+## 2026-02-07: Mining Commands Extraction Review
+
+### Files Reviewed
+- `src/mining/commands.ts` (new -- 4 command classes)
+- `src/mining/commands.test.ts` (new -- 25 tests)
+- `src/mining/controller.ts` (refactored to use commands)
+- `src/mining/interfaces.ts` (added CompleteMiningResult)
+- `src/mining/index.ts` (updated exports)
+
+### Key Findings
+1. **Non-null assertion on state.asteroid in CompleteMiningCommand** (line 63): `state.asteroid!` -- should be a runtime guard with throw or early return. Only critical finding.
+2. **Import path inconsistency in controller.ts**: `GameState` imported from `'../gamestate/interfaces'` instead of barrel `'../gamestate'`. Inconsistent with commands.ts which uses barrel correctly.
+3. **SellResourcesCommand receives pre-computed SellResult**: Unlike other commands that compute at execute-time, this takes a pre-computed value. Works because caller is synchronous, but inconsistent with "read state at execute time" philosophy.
+4. **createTestAsteroid helper is a good pattern**: Reduces duplication vs inline asteroid literals in other test files. Should be considered for extraction to shared test utils.
+5. **discovered_elements referential equality optimization**: Tested with `toBe()` -- good defensive practice for subscriber change detection.
+6. **All 4 commands have @precondition JSDoc**: Consistent with pattern established after ships review.
+
+### Verdict
+High quality extraction. Most complex of the command refactors due to CompleteMiningCommand's multi-step logic. One critical fix needed (non-null assertion). Clean test suite with thorough coverage including edge cases.

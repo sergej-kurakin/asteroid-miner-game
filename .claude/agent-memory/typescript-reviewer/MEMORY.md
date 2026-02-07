@@ -14,6 +14,9 @@
 - `BuyPowerCommand` in `src/power/commands.ts` -- returns `number` (new power level)
 - `UpgradeShipCommand` in `src/ships/commands.ts` -- returns `ShipData`
 - `BuyToolCommand`, `EquipToolCommand`, `UnequipToolCommand` in `src/tools/commands.ts` -- return `void`
+- `StartMiningCommand`, `CancelMiningCommand`, `CompleteMiningCommand`, `SellResourcesCommand` in `src/mining/commands.ts`
+- `CompleteMiningCommand` is most complex -- delegates to IMiningSystem for yield calculation, capping, discovery, merge
+- `SellResourcesCommand` uniquely receives pre-computed SellResult rather than computing at execute-time
 - Controller handles validation; commands handle state mutation only
 - Commands read state at execute() time (not construction time) -- fixed from earlier stale snapshot issue
 - IAsteroidGenerator injected into ScanCommand via constructor
@@ -49,3 +52,5 @@
 - Check internal import paths (`../module/interfaces`) that should use barrel (`../module`)
 - Verify @precondition JSDoc on all Command classes
 - Check that result types needing narrowing are discriminated unions (ongoing migration)
+- Watch for non-null assertions (`!`) on nullable state fields in commands -- prefer runtime guard + throw
+- `createTestAsteroid()` helper exists in `src/mining/commands.test.ts` -- candidate for shared test util

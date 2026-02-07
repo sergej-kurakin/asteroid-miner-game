@@ -1,23 +1,19 @@
 # Game Test Runner - Agent Memory
 
 ## Test Suite Baseline (updated 2026-02-07, `another-refatoring` branch)
-- **26 test files**, **383 tests total** (376 passing, 7 failing)
-- 1 failing file: `src/persistence/storage.test.ts` (all 7 tests)
-- Typecheck also failing: 4 errors in persistence module
-- Test run duration: ~4.0s tests, ~5.2s wall clock
+- **27 test files**, **408 tests total** (all passing)
+- Typecheck: clean (0 errors)
+- Test run duration: ~3.6s tests, ~5.9s wall clock
 - Vitest v4.0.18
 
 ## Current Issues (as of 2026-02-07)
-1. **Typecheck failures (4 errors):**
-   - `src/persistence/index.ts`: References `PersistenceController` and `LocalStorageAdapter` which don't exist by those names
-   - `src/persistence/transformer.test.ts`: Mock Asteroid missing `totalYield`, `miningTime`, `visualDiameter`
-2. **Test failure (7 tests):**
-   - `src/persistence/storage.test.ts`: `localStorage.clear()` not available in Node env; needs jsdom or manual mock
+- None. All typechecks and tests pass.
 
-## Test File Inventory (26 files)
+## Test File Inventory (27 files)
 | File | Tests | Status |
 |------|-------|--------|
 | src/mining/system.test.ts | 26 | pass |
+| src/mining/commands.test.ts | 25 | pass |
 | src/mining/controller.test.ts | 23 | pass |
 | src/tools/controller.test.ts | 26 | pass |
 | src/tools/commands.test.ts | 13 | pass |
@@ -29,9 +25,9 @@
 | src/power/controller.test.ts | 12 | pass |
 | src/power/commands.test.ts | 8 | pass |
 | src/gamestate/observer.test.ts | 18 | pass |
-| src/persistence/transformer.test.ts | 9 | pass (typecheck fails) |
+| src/persistence/transformer.test.ts | 9 | pass |
 | src/persistence/controller.test.ts | 4 | pass |
-| src/persistence/storage.test.ts | 7 | FAIL |
+| src/persistence/storage.test.ts | 7 | pass |
 | src/ui/components/asteroid-view.test.ts | 23 | pass |
 | src/ui/components/ship-info.test.ts | 21 | pass |
 | src/ui/components/control-buttons.test.ts | 20 | pass |
@@ -45,9 +41,10 @@
 | src/ui/components/status-display.test.ts | 6 | pass |
 
 ## Key Observations
-- Persistence module under active development (3 new files: storage, transformer, controller)
-- `Asteroid` interface gained `totalYield`, `miningTime`, `visualDiameter` fields
-- Slowest test files: tool-panel (~676ms), ship-info (~590ms), inventory-list (~426ms)
+- Persistence module stabilized (storage, transformer, controller all passing)
+- `Asteroid` interface includes `totalYield`, `miningTime`, `visualDiameter` fields
+- New `src/mining/commands.test.ts` added (25 tests) for mining command pattern
+- Slowest test files: tool-panel (~798ms), ship-info (~608ms), composition-grid (~424ms)
 - Non-UI tests run fast (<100ms each)
 - `npm run build` runs tests as part of pipeline (clean -> typecheck -> test -> bundle)
 
