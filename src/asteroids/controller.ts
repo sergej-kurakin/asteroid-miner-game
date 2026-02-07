@@ -1,11 +1,19 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
-import type { Asteroid, IAsteroidsController, ScanResult, AbandonResult } from './interfaces';
+import type { Asteroid, IAsteroidsController, IAsteroidGenerator, ScanResult, AbandonResult } from './interfaces';
 import { SCAN_POWER_COST } from './constants';
-import { generateAsteroid } from './generator';
+import { ScanCommand, AbandonCommand } from './commands';
+import { AsteroidGenerator } from './generator';
 
 export class AsteroidsController implements IAsteroidsController {
-    constructor(private readonly state$: Observable<GameState>) {}
+    private readonly generator: IAsteroidGenerator;
+
+    constructor(
+        private readonly state$: Observable<GameState>,
+        generator?: IAsteroidGenerator
+    ) {
+        this.generator = generator ?? new AsteroidGenerator();
+    }
 
     scan(): ScanResult {
         const state = this.state$.getState();
@@ -20,12 +28,8 @@ export class AsteroidsController implements IAsteroidsController {
             return { success: false, error: 'insufficient_power' };
         }
 
-        const asteroid = generateAsteroid(state.current_ship_level);
-        this.state$.setState({
-            power: state.power - SCAN_POWER_COST,
-            asteroid
-        });
-
+        const command = new ScanCommand(this.state$, this.generator);
+        const asteroid = command.execute();
         return { success: true, asteroid };
     }
 
@@ -39,7 +43,7 @@ export class AsteroidsController implements IAsteroidsController {
             return { success: false, error: 'no_asteroid' };
         }
 
-        this.state$.updateProperty('asteroid', null);
+        new AbandonCommand(this.state$).execute();
         return { success: true };
     }
 
