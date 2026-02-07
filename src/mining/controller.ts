@@ -1,6 +1,6 @@
-import type { Observable } from '../gamestate';
-import type { GameState } from '../gamestate/interfaces';
+import type { Observable, GameState } from '../gamestate';
 import type { IToolController, ToolBonuses } from '../tools/interfaces';
+import { StartMiningCommand, CancelMiningCommand, CompleteMiningCommand, SellResourcesCommand } from './commands';
 import { MINE_POWER_COST } from './constants';
 import type {
     IMiningController,
@@ -55,11 +55,7 @@ export class MiningController implements IMiningController {
         }
 
         // Deduct power and start mining
-        this.state$.setState({
-            is_mining: true,
-            mining_progress: 0,
-            power: state.power - effectivePowerCost
-        });
+        new StartMiningCommand(this.state$, effectivePowerCost).execute();
         this.miningStartTime = Date.now();
 
         this.emit({ type: 'mining_started', asteroid: state.asteroid });
@@ -79,10 +75,7 @@ export class MiningController implements IMiningController {
             this.updateIntervalId = null;
         }
 
-        this.state$.setState({
-            is_mining: false,
-            mining_progress: 0
-        });
+        new CancelMiningCommand(this.state$).execute();
         this.miningStartTime = null;
     }
 
@@ -102,13 +95,7 @@ export class MiningController implements IMiningController {
             return null;
         }
 
-        this.state$.setState({
-            credits: state.credits + result.totalValue,
-            inventory: {},
-            hold_used: 0
-        });
-
-        return result;
+        return new SellResourcesCommand(this.state$, result).execute();
     }
 
     subscribe(listener: MiningEventListener): () => void {
@@ -133,8 +120,7 @@ export class MiningController implements IMiningController {
     }
 
     private completeMining(): void {
-        const state = this.state$.getState();
-        if (!state.asteroid) return;
+        if (!this.state$.getState().asteroid) return;
 
         // Clear the update interval
         if (this.updateIntervalId !== null) {
@@ -142,50 +128,18 @@ export class MiningController implements IMiningController {
             this.updateIntervalId = null;
         }
 
-        // Calculate full yield from asteroid with tool bonuses
-        const fullYield = this.system.calculateYield(state.asteroid, this.getToolBonuses());
+        const { cappedYield, newDiscoveries } = new CompleteMiningCommand(
+            this.state$,
+            this.system,
+            this.getToolBonuses()
+        ).execute();
 
-        // Cap yield to available hold space
-        const availableSpace = state.hold_capacity - state.hold_used;
-        const cappedYield = this.system.capYieldToAvailableSpace(fullYield, availableSpace);
-
-        // Check for discoveries before updating state (use capped yield)
-        const newDiscoveries = this.system.findNewDiscoveries(
-            cappedYield.collected,
-            state.discovered_elements
-        );
+        this.miningStartTime = null;
 
         // Emit discovery events
         for (const element of newDiscoveries) {
             this.emit({ type: 'discovery', element });
         }
-
-        // Calculate new inventory and hold (use capped yield)
-        const newInventory = this.system.mergeIntoInventory(
-            state.inventory,
-            cappedYield.collected
-        );
-        const newHoldUsed = this.system.calculateNewHoldUsed(
-            state.hold_used,
-            cappedYield.totalAmount,
-            state.hold_capacity
-        );
-
-        // Update state with all new discovered elements
-        const allDiscovered = newDiscoveries.length > 0
-            ? [...state.discovered_elements, ...newDiscoveries]
-            : state.discovered_elements;
-
-        this.state$.setState({
-            inventory: newInventory,
-            hold_used: newHoldUsed,
-            is_mining: false,
-            mining_progress: 0,
-            asteroid: null,
-            discovered_elements: allDiscovered
-        });
-
-        this.miningStartTime = null;
 
         this.emit({ type: 'mining_completed', yield: cappedYield });
     }

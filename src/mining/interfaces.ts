@@ -7,6 +7,12 @@ export interface MiningYield {
     totalAmount: number;
 }
 
+// Result of completing mining (returned by CompleteMiningCommand)
+export interface CompleteMiningResult {
+    cappedYield: MiningYield;
+    newDiscoveries: string[];
+}
+
 // Result of selling resources
 export interface SellResult {
     totalValue: number;
