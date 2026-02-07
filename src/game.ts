@@ -52,7 +52,7 @@ let asteroidView: AsteroidView;
 // ========================================
 function handleShipUpgrade(): void {
     const result = shipController.upgrade();
-    if (result.success && result.newShip) {
+    if (result.success) {
         statusDisplay.setMessage(`Upgraded to ${result.newShip.name}!`);
         saveGameState(gameState$.getState());
     }
