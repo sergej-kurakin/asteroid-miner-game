@@ -7,7 +7,7 @@ import type { IShipController } from './ships';
 import { type GameState, StateObserver, type Observable } from './gamestate';
 import { ShipController } from './ships';
 import { CONFIG } from './config/config';
-import { saveGameState, loadGameState } from './persistence';
+import { createPersistenceController, type IPersistenceController } from './persistence';
 import { MiningController, type IMiningController, type MiningEvent, type ElementPrices } from './mining';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
@@ -32,6 +32,7 @@ import {
 // ========================================
 
 let gameState$: Observable<GameState>;
+let persistence: IPersistenceController;
 let shipController: IShipController;
 let miningController: IMiningController;
 let powerController: IPowerController;
@@ -54,7 +55,7 @@ function handleShipUpgrade(): void {
     const result = shipController.upgrade();
     if (result.success) {
         statusDisplay.setMessage(`Upgraded to ${result.newShip.name}!`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     }
 }
 
@@ -66,7 +67,7 @@ function handleBuyPower(): void {
 
     if (result.success) {
         statusDisplay.setMessage('Power Recharged (+50)');
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_credits') {
         statusDisplay.setMessage('Insufficient Credits');
     } else if (result.error === 'power_full') {
@@ -82,7 +83,7 @@ function handleBuyTool(toolId: string): void {
     if (result.success) {
         const tool = toolController.getToolData(toolId);
         statusDisplay.setMessage(`Purchased ${tool?.name ?? toolId}`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_credits') {
         statusDisplay.setMessage('Insufficient Credits');
     }
@@ -93,14 +94,14 @@ function handleEquipTool(toolId: string, slot: number): void {
     if (result.success) {
         const tool = toolController.getToolData(toolId);
         statusDisplay.setMessage(`Equipped ${tool?.name ?? toolId}`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     }
 }
 
 function handleUnequipTool(slot: number): void {
     toolController.unequipTool(slot);
     statusDisplay.setMessage('Tool Unequipped');
-    saveGameState(gameState$.getState());
+    persistence.save(gameState$.getState());
 }
 
 // ========================================
@@ -121,7 +122,7 @@ function scanAsteroid(): void {
     if (result.success) {
         asteroidView.showAsteroid();
         statusDisplay.setMessage('Asteroid Locked');
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_power') {
         statusDisplay.setMessage('Insufficient Power');
     }
@@ -148,7 +149,7 @@ function handleMiningEvent(event: MiningEvent): void {
         case 'mining_completed':
             asteroidView.hideAsteroid();
             statusDisplay.setMessage('Mining Complete');
-            saveGameState(gameState$.getState());
+            persistence.save(gameState$.getState());
             break;
 
         case 'mining_failed':
@@ -170,7 +171,7 @@ function handleSellResources(): void {
     const result = miningController.sellResources();
     if (result) {
         statusDisplay.setMessage(`Sold for ${formatNumber(result.totalValue)} credits`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     }
 }
 
@@ -233,7 +234,8 @@ function initComponents(): void {
 // ========================================
 function init(): void {
     // Load saved game and create observable state
-    const initialState = loadGameState();
+    persistence = createPersistenceController();
+    const initialState = persistence.load();
     gameState$ = new StateObserver(initialState);
 
     // Build element prices map from config
@@ -256,7 +258,7 @@ function init(): void {
     initComponents();
 
     // Auto-save interval
-    setInterval(() => saveGameState(gameState$.getState()), CONFIG.autoSaveInterval);
+    setInterval(() => persistence.save(gameState$.getState()), CONFIG.autoSaveInterval);
 
     console.log('Asteroid Miner initialized');
 }
