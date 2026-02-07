@@ -1,5 +1,4 @@
-import type { Observable, Command } from '../gamestate';
-import type { GameState } from '../gamestate/interfaces';
+import type { Observable, Command, GameState } from '../gamestate';
 import type { ToolData } from './interfaces';
 
 /**
