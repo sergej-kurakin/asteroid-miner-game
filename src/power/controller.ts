@@ -1,7 +1,8 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
-import { POWER_COST, POWER_GAIN } from './constants';
+import { POWER_COST } from './constants';
 import type { IPowerController, BuyPowerResult } from './interfaces';
+import { BuyPowerCommand } from './commands';
 
 export class PowerController implements IPowerController {
     constructor(
@@ -20,15 +21,7 @@ export class PowerController implements IPowerController {
             return { success: false, error: 'power_full' };
         }
 
-        // Calculate new power (cap at max)
-        const newPower = Math.min(state.power + POWER_GAIN, state.power_capacity);
-
-        // Execute transaction
-        this.state$.setState({
-            power: newPower,
-            credits: state.credits - POWER_COST
-        });
-
+        const newPower = new BuyPowerCommand(this.state$).execute();
         return { success: true, newPower };
     }
 

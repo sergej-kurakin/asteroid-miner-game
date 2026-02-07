@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { PowerController } from './controller';
 import { StateObserver } from '../gamestate/observer';
 import type { GameState } from '../gamestate/interfaces';
+import { POWER_COST, POWER_GAIN } from './constants';
 
 describe('PowerController', () => {
     let gameState$: StateObserver<GameState>;
@@ -32,8 +33,8 @@ describe('PowerController', () => {
             const state = gameState$.getState();
 
             expect(result.success).toBe(true);
-            expect(state.credits).toBe(400); // 500 - 100
-            expect(state.power).toBe(100); // 80 + 50, capped at Scout's 100
+            expect(state.credits).toBe(500 - POWER_COST);
+            expect(state.power).toBe(Math.min(80 + POWER_GAIN, 100));
         });
 
         it('should fail when credits insufficient', () => {
@@ -41,7 +42,9 @@ describe('PowerController', () => {
             const result = powerController.buyPower();
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('insufficient_credits');
+            if (!result.success) {
+                expect(result.error).toBe('insufficient_credits');
+            }
         });
 
         it('should fail when power is full', () => {
@@ -49,14 +52,18 @@ describe('PowerController', () => {
             const result = powerController.buyPower();
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('power_full');
+            if (!result.success) {
+                expect(result.error).toBe('power_full');
+            }
         });
 
         it('should cap power at ship power_capacity', () => {
             gameState$.updateProperty('power', 95);
             const result = powerController.buyPower();
 
-            expect(result.newPower).toBe(100); // 95 + 50 = 145, capped at 100
+            if (result.success) {
+                expect(result.newPower).toBe(100);
+            }
             expect(gameState$.getState().power).toBe(100);
         });
 
@@ -75,7 +82,9 @@ describe('PowerController', () => {
             const result = powerController.buyPower();
 
             expect(result.success).toBe(true);
-            expect(result.newPower).toBe(100);
+            if (result.success) {
+                expect(result.newPower).toBe(Math.min(80 + POWER_GAIN, 100));
+            }
         });
     });
 
