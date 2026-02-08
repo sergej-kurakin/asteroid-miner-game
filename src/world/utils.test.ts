@@ -149,7 +149,7 @@ describe('utils', () => {
             if (markets.length > 0) {
                 const marketPos = markets[0].position;
                 // Find a neighbor within radius
-                const cells = getCellsInRadius(world, marketPos, 2);
+                const cells = getCellsInRadius(world, marketPos, 1);
                 const nonMarket = cells.find(c => c.type !== CellType.Market && c.type !== CellType.PowerStation);
                 if (nonMarket) {
                     expect(getMiningConstraint(world, nonMarket.position)).toBe(MiningConstraint.None);

@@ -77,14 +77,14 @@ describe('WorldGenerator', () => {
         expect(cell?.miningConstraint).toBe(MiningConstraint.SmallOnly);
     });
 
-    it('cell within radius 3 of a market has None constraint', () => {
-        // Market is at (3,11,5); cell (3,11,3) is distance 2 away
+    it('cell within radius 1 of a market has None constraint', () => {
+        // Market is at (3,11,5); cell (3,11,4) is distance 1 away
         const world = generator.generate();
-        const cell = world.get('3,11,3');
+        const cell = world.get('3,11,4');
         expect(cell?.miningConstraint).toBe(MiningConstraint.None);
     });
 
-    it('cell within radius 3 of a power station (not near market) has SmallOnly constraint', () => {
+    it('cell within radius 2 of a power station (not near market) has SmallOnly constraint', () => {
         // Station at (4,7,0); cell (4,7,2) is distance 2 away
         const world = generator.generate();
         const cell = world.get('4,7,2');
