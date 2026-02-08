@@ -19,3 +19,8 @@ export interface IMarket {
     sellAll(): SellAllResult;
     canSell(): boolean;
 }
+
+// Market system strategy interface
+export interface IMarketSystem {
+    evaluate(inventory: { [element: string]: number }): number;
+}
