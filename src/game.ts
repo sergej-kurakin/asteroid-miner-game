@@ -298,7 +298,7 @@ function init(): void {
         black: new BlackMarketSystem(),
         dump: new DumpMarketSystem()
     });
-    asteroidsController = new AsteroidsController(gameState$);
+    asteroidsController = new AsteroidsController(gameState$, undefined, world);
 
     // Subscribe to mining events
     miningController.subscribe(handleMiningEvent);

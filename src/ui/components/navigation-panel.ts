@@ -3,7 +3,8 @@
 
 import type { Observable, GameState } from '../../gamestate';
 import type { CellPosition, World } from '../../world';
-import { getCellAt, isInBounds } from '../../world';
+import { getCellAt, getMiningConstraint, isInBounds } from '../../world';
+import { CellType, MiningConstraint } from '../../world';
 import { BaseComponent } from '../base-component';
 
 const DIRECTIONS: Array<{ label: string; delta: CellPosition }> = [
@@ -18,6 +19,7 @@ const DIRECTIONS: Array<{ label: string; delta: CellPosition }> = [
 export class NavigationPanel extends BaseComponent {
     private positionEl: HTMLElement | null = null;
     private costEl: HTMLElement | null = null;
+    private scanInfoEl: HTMLElement | null = null;
     private controlsEl: HTMLElement | null = null;
 
     constructor(
@@ -31,6 +33,7 @@ export class NavigationPanel extends BaseComponent {
     mount(): void {
         this.positionEl = document.getElementById('nav-position');
         this.costEl = document.getElementById('nav-cost');
+        this.scanInfoEl = document.getElementById('nav-scan-info');
         this.controlsEl = document.getElementById('nav-controls');
 
         this.subscribeToMultiple(['current_cell', 'power', 'hold_used', 'is_mining'], () => this.render());
@@ -54,6 +57,21 @@ export class NavigationPanel extends BaseComponent {
 
         if (this.costEl) {
             this.costEl.textContent = `Move cost: ${cost} pwr`;
+        }
+
+        if (this.scanInfoEl) {
+            const constraint = (cell?.type === CellType.Mining)
+                ? getMiningConstraint(this.world, state.current_cell)
+                : null;
+
+            let scanInfo: string;
+            if (!cell || cell.type === CellType.Empty) scanInfo = 'No asteroids';
+            else if (cell.type === CellType.PowerStation || cell.type === CellType.Market) scanInfo = 'No mining zone';
+            else if (constraint === MiningConstraint.None) scanInfo = 'Scanning: BLOCKED (near market)';
+            else if (constraint === MiningConstraint.SmallOnly) scanInfo = 'Sizes: Tiny, Small only';
+            else scanInfo = 'Sizes: All (by ship level)';
+
+            this.scanInfoEl.textContent = scanInfo;
         }
 
         if (this.controlsEl) {

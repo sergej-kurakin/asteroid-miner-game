@@ -1,6 +1,9 @@
 import type { Asteroid, AsteroidSize, AsteroidType, AsteroidComposition, WeightedItem, RandomProvider, IAsteroidGenerator } from './interfaces';
 import { ASTEROID_SIZES, ASTEROID_TYPES, SHIP_SPAWN_CONFIG } from './constants';
 import { DefaultRandomProvider } from './random-provider';
+import { MiningConstraint } from '../world/interfaces';
+
+const SMALL_ONLY_SIZES: AsteroidSize[] = ['tiny', 'small'];
 
 /**
  * Class-based asteroid generator with dependency injection support
@@ -15,8 +18,8 @@ export class AsteroidGenerator implements IAsteroidGenerator {
     /**
      * Generate a complete asteroid based on ship level
      */
-    generate(shipLevel: number): Asteroid {
-        const size = this.selectSize(shipLevel);
+    generate(shipLevel: number, constraint?: MiningConstraint): Asteroid {
+        const size = this.selectSize(shipLevel, constraint);
         const type = this.selectType(shipLevel);
         const composition = this.generateComposition(type);
         const totalYield = this.calculateYield(size, type);
@@ -36,9 +39,18 @@ export class AsteroidGenerator implements IAsteroidGenerator {
     /**
      * Select asteroid size based on ship level spawn probabilities
      */
-    private selectSize(shipLevel: number): AsteroidSize {
+    private selectSize(shipLevel: number, constraint?: MiningConstraint): AsteroidSize {
         const config = SHIP_SPAWN_CONFIG[shipLevel] || SHIP_SPAWN_CONFIG[1];
-        const weightedSizes = this.probabilityMapToWeightedItems<AsteroidSize>(config.sizes);
+        let sizesMap = config.sizes;
+        if (constraint === MiningConstraint.SmallOnly) {
+            const filtered = Object.fromEntries(
+                Object.entries(sizesMap).filter(([k]) => (SMALL_ONLY_SIZES as string[]).includes(k))
+            ) as typeof sizesMap;
+            if (Object.keys(filtered).length > 0) {
+                sizesMap = filtered;
+            }
+        }
+        const weightedSizes = this.probabilityMapToWeightedItems<AsteroidSize>(sizesMap);
         return this.random.weightedRandomSelect(weightedSizes);
     }
 
