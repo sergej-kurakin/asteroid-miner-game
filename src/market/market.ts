@@ -21,21 +21,8 @@ export class Market implements IMarket {
             return { success: false, error: 'empty_hold' };
         }
 
-        const state = this.state$.getState();
         const mediator = new TradeMediator(strategy);
-        const transaction = mediator.evaluate(state.inventory);
-
-        if (!transaction) {
-            return { success: false, error: 'empty_hold' };
-        }
-
-        new SellResourcesCommand(this.state$, transaction).execute();
-
-        return {
-            success: true,
-            totalValue: transaction.creditsDelta,
-            itemsSold: transaction.itemsSold
-        };
+        return new SellResourcesCommand(this.state$, mediator).execute();
     }
 
     canSell(): boolean {
