@@ -45,6 +45,7 @@ describe('PowerButton', () => {
             canBuyPower: vi.fn().mockReturnValue(true),
             getCurrentPower: vi.fn().mockReturnValue(50),
             getMaxPower: vi.fn().mockReturnValue(100),
+            getPowerCost: vi.fn().mockReturnValue(100),
         };
         onBuyPower = vi.fn() as () => void;
         button = new PowerButton(state$, mockController, onBuyPower);

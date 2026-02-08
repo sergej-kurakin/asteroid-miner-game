@@ -1,14 +1,17 @@
 import type { Observable, Command, GameState } from '../gamestate';
-import { POWER_COST, POWER_GAIN } from './constants';
+import { POWER_GAIN } from './constants';
 
 /**
- * Adds POWER_GAIN to power (capped at capacity) and deducts POWER_COST from credits.
+ * Adds POWER_GAIN to power (capped at capacity) and deducts cost from credits.
  *
- * @precondition state.credits >= POWER_COST
+ * @precondition state.credits >= cost
  * @precondition state.power < state.power_capacity
  */
 export class BuyPowerCommand implements Command<number> {
-    constructor(private readonly state$: Observable<GameState>) {}
+    constructor(
+        private readonly state$: Observable<GameState>,
+        private readonly cost: number,
+    ) {}
 
     execute(): number {
         const state = this.state$.getState();
@@ -16,7 +19,7 @@ export class BuyPowerCommand implements Command<number> {
 
         this.state$.setState({
             power: newPower,
-            credits: state.credits - POWER_COST
+            credits: state.credits - this.cost
         });
 
         return newPower;

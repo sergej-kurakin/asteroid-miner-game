@@ -290,7 +290,7 @@ function init(): void {
 
     // Initialize controllers
     shipController = new ShipController(gameState$);
-    powerController = new PowerController(gameState$);
+    powerController = new PowerController(gameState$, world);
     toolController = new ToolController(gameState$, shipController);
     miningController = new MiningController(gameState$, toolController);
     market = new Market(gameState$, {
