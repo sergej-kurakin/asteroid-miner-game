@@ -7,8 +7,9 @@ import type { IShipController } from './ships';
 import { type GameState, StateObserver, type Observable } from './gamestate';
 import { ShipController } from './ships';
 import { CONFIG } from './config/config';
-import { saveGameState, loadGameState } from './persistence';
-import { MiningController, type IMiningController, type MiningEvent, type ElementPrices } from './mining';
+import { createPersistenceController, type IPersistenceController } from './persistence';
+import { MiningController, type IMiningController, type MiningEvent } from './mining';
+import { Market, type IMarket, OfficialMarketSystem, BlackMarketSystem, DumpMarketSystem } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
 import {
@@ -32,11 +33,13 @@ import {
 // ========================================
 
 let gameState$: Observable<GameState>;
+let persistence: IPersistenceController;
 let shipController: IShipController;
 let miningController: IMiningController;
 let powerController: IPowerController;
 let asteroidsController: IAsteroidsController;
 let toolController: IToolController;
+let market: IMarket;
 
 // ========================================
 // UI COMPONENTS
@@ -52,9 +55,9 @@ let asteroidView: AsteroidView;
 // ========================================
 function handleShipUpgrade(): void {
     const result = shipController.upgrade();
-    if (result.success && result.newShip) {
+    if (result.success) {
         statusDisplay.setMessage(`Upgraded to ${result.newShip.name}!`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     }
 }
 
@@ -66,7 +69,7 @@ function handleBuyPower(): void {
 
     if (result.success) {
         statusDisplay.setMessage('Power Recharged (+50)');
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_credits') {
         statusDisplay.setMessage('Insufficient Credits');
     } else if (result.error === 'power_full') {
@@ -82,7 +85,7 @@ function handleBuyTool(toolId: string): void {
     if (result.success) {
         const tool = toolController.getToolData(toolId);
         statusDisplay.setMessage(`Purchased ${tool?.name ?? toolId}`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_credits') {
         statusDisplay.setMessage('Insufficient Credits');
     }
@@ -93,14 +96,14 @@ function handleEquipTool(toolId: string, slot: number): void {
     if (result.success) {
         const tool = toolController.getToolData(toolId);
         statusDisplay.setMessage(`Equipped ${tool?.name ?? toolId}`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     }
 }
 
 function handleUnequipTool(slot: number): void {
     toolController.unequipTool(slot);
     statusDisplay.setMessage('Tool Unequipped');
-    saveGameState(gameState$.getState());
+    persistence.save(gameState$.getState());
 }
 
 // ========================================
@@ -121,7 +124,7 @@ function scanAsteroid(): void {
     if (result.success) {
         asteroidView.showAsteroid();
         statusDisplay.setMessage('Asteroid Locked');
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_power') {
         statusDisplay.setMessage('Insufficient Power');
     }
@@ -148,7 +151,7 @@ function handleMiningEvent(event: MiningEvent): void {
         case 'mining_completed':
             asteroidView.hideAsteroid();
             statusDisplay.setMessage('Mining Complete');
-            saveGameState(gameState$.getState());
+            persistence.save(gameState$.getState());
             break;
 
         case 'mining_failed':
@@ -166,12 +169,24 @@ function handleStartMining(): void {
 // ========================================
 // SELL RESOURCES
 // ========================================
-function handleSellResources(): void {
-    const result = miningController.sellResources();
-    if (result) {
+function handleSellResources(marketKey: string): void {
+    const result = market.sellAll(marketKey);
+    if (result.success) {
         statusDisplay.setMessage(`Sold for ${formatNumber(result.totalValue)} credits`);
-        saveGameState(gameState$.getState());
+        persistence.save(gameState$.getState());
     }
+}
+
+function handleSellOfficial(): void {
+    handleSellResources('official');
+}
+
+function handleSellBlack(): void {
+    handleSellResources('black');
+}
+
+function handleSellDump(): void {
+    handleSellResources('dump');
 }
 
 // ========================================
@@ -221,10 +236,20 @@ function initComponents(): void {
         components.push(component);
     }
 
-    // Attach sell button listener (not part of component system)
-    const btnSell = document.getElementById('btn-sell') as HTMLButtonElement;
-    if (btnSell) {
-        btnSell.addEventListener('click', handleSellResources);
+    // Attach sell button listeners (not part of component system)
+    const btnSellOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
+    if (btnSellOfficial) {
+        btnSellOfficial.addEventListener('click', handleSellOfficial);
+    }
+
+    const btnSellBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
+    if (btnSellBlack) {
+        btnSellBlack.addEventListener('click', handleSellBlack);
+    }
+
+    const btnSellDump = document.getElementById('btn-sell-dump') as HTMLButtonElement;
+    if (btnSellDump) {
+        btnSellDump.addEventListener('click', handleSellDump);
     }
 }
 
@@ -233,20 +258,20 @@ function initComponents(): void {
 // ========================================
 function init(): void {
     // Load saved game and create observable state
-    const initialState = loadGameState();
+    persistence = createPersistenceController();
+    const initialState = persistence.load();
     gameState$ = new StateObserver(initialState);
-
-    // Build element prices map from config
-    const elementPrices: ElementPrices = {};
-    for (const [symbol, data] of Object.entries(CONFIG.elements)) {
-        elementPrices[symbol] = data.price;
-    }
 
     // Initialize controllers
     shipController = new ShipController(gameState$);
     powerController = new PowerController(gameState$);
     toolController = new ToolController(gameState$, shipController);
-    miningController = new MiningController(gameState$, elementPrices, toolController);
+    miningController = new MiningController(gameState$, toolController);
+    market = new Market(gameState$, {
+        official: new OfficialMarketSystem(),
+        black: new BlackMarketSystem(),
+        dump: new DumpMarketSystem()
+    });
     asteroidsController = new AsteroidsController(gameState$);
 
     // Subscribe to mining events
@@ -256,7 +281,7 @@ function init(): void {
     initComponents();
 
     // Auto-save interval
-    setInterval(() => saveGameState(gameState$.getState()), CONFIG.autoSaveInterval);
+    setInterval(() => persistence.save(gameState$.getState()), CONFIG.autoSaveInterval);
 
     console.log('Asteroid Miner initialized');
 }

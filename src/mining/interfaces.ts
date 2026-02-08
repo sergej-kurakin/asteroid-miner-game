@@ -7,10 +7,10 @@ export interface MiningYield {
     totalAmount: number;
 }
 
-// Result of selling resources
-export interface SellResult {
-    totalValue: number;
-    itemsSold: { [element: string]: number };
+// Result of completing mining (returned by CompleteMiningCommand)
+export interface CompleteMiningResult {
+    cappedYield: MiningYield;
+    newDiscoveries: string[];
 }
 
 // Mining event types
@@ -23,11 +23,6 @@ export type MiningEvent =
 
 export type MiningEventListener = (event: MiningEvent) => void;
 
-// Element prices lookup
-export interface ElementPrices {
-    [element: string]: number;
-}
-
 // Interface for pure calculation methods
 export interface IMiningSystem {
     calculateYield(asteroid: Asteroid, toolBonuses?: ToolBonuses): MiningYield;
@@ -35,10 +30,6 @@ export interface IMiningSystem {
         miningYield: MiningYield,
         availableSpace: number
     ): MiningYield;
-    calculateSellValue(
-        inventory: { [element: string]: number },
-        prices: ElementPrices
-    ): SellResult;
     findNewDiscoveries(
         collected: { [element: string]: number },
         discovered: string[]
@@ -60,6 +51,5 @@ export interface IMiningController {
     cancelMining(): void;
     isMining(): boolean;
     getProgress(): number;
-    sellResources(): SellResult | null;
     subscribe(listener: MiningEventListener): () => void;
 }

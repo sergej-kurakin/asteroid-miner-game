@@ -9,11 +9,9 @@ export interface ShipData {
     special: string;
 }
 
-export interface UpgradeResult {
-    success: boolean;
-    newShip?: ShipData;
-    error?: 'insufficient_credits' | 'max_level_reached';
-}
+export type UpgradeResult =
+    | { success: true; newShip: ShipData }
+    | { success: false; error: 'insufficient_credits' | 'max_level_reached' | 'is_mining' };
 
 export interface IShipController {
     getCurrentShip(): ShipData;

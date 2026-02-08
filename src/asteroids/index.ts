@@ -16,8 +16,10 @@ export type {
     IAsteroidGenerator
 } from './interfaces';
 
+export type { Command } from '../gamestate';
+
 // Generator exports
-export { AsteroidGenerator, generateAsteroid } from './generator';
+export { AsteroidGenerator } from './generator';
 
 // Random provider export
 export { DefaultRandomProvider } from './random-provider';
@@ -30,6 +32,9 @@ export {
     RARE_ELEMENTS,
     SCAN_POWER_COST
 } from './constants';
+
+// Command exports
+export { ScanCommand, AbandonCommand } from './commands';
 
 // Controller export
 export { AsteroidsController } from './controller';

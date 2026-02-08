@@ -1,6 +1,11 @@
 import type { Asteroid } from '../asteroids/interfaces';
 import type { EquippedTool } from '../tools/interfaces';
 
+// Command pattern interface
+export interface Command<TResult> {
+    execute(): TResult;
+}
+
 export interface GameState {
     credits: number;
     current_ship_level: number;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AsteroidGenerator, generateAsteroid } from './generator';
+import { AsteroidGenerator } from './generator';
 import type { RandomProvider, WeightedItem } from './interfaces';
 import { ASTEROID_SIZES, ASTEROID_TYPES, SHIP_SPAWN_CONFIG } from './constants';
 
@@ -286,40 +286,3 @@ describe('AsteroidGenerator', () => {
     });
 });
 
-describe('generateAsteroid (backward compatibility)', () => {
-    it('should generate asteroid for valid ship level', () => {
-        const asteroid = generateAsteroid(1);
-        expect(asteroid).toBeDefined();
-        expect(asteroid.size).toBeDefined();
-        expect(asteroid.type).toBeDefined();
-        expect(asteroid.composition).toBeDefined();
-        expect(asteroid.totalYield).toBeGreaterThan(0);
-    });
-
-    it('should handle invalid ship levels gracefully', () => {
-        const asteroid = generateAsteroid(0);
-        expect(asteroid).toBeDefined();
-
-        const asteroid2 = generateAsteroid(-1);
-        expect(asteroid2).toBeDefined();
-
-        const asteroid3 = generateAsteroid(100);
-        expect(asteroid3).toBeDefined();
-    });
-
-    it('should produce valid asteroids for all ship levels', () => {
-        for (let level = 1; level <= 5; level++) {
-            const asteroid = generateAsteroid(level);
-
-            expect(asteroid.size).toBeDefined();
-            expect(asteroid.type).toBeDefined();
-
-            const compositionSum = Object.values(asteroid.composition).reduce((sum, val) => sum + val, 0);
-            expect(compositionSum).toBe(100);
-
-            expect(asteroid.totalYield).toBeGreaterThan(0);
-            expect(asteroid.miningTime).toBeGreaterThan(0);
-            expect(asteroid.visualDiameter).toBeGreaterThan(0);
-        }
-    });
-});

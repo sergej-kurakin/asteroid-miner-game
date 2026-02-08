@@ -60,45 +60,6 @@ describe('MiningSystem', () => {
         });
     });
 
-    describe('calculateSellValue', () => {
-        it('should calculate total value from inventory', () => {
-            const inventory = { Fe: 10, Ni: 5 };
-            const prices = { Fe: 50, Ni: 150 };
-
-            const result = system.calculateSellValue(inventory, prices);
-
-            expect(result.totalValue).toBe(10 * 50 + 5 * 150); // 500 + 750 = 1250
-            expect(result.itemsSold).toEqual({ Fe: 10, Ni: 5 });
-        });
-
-        it('should handle zero amounts', () => {
-            const inventory = { Fe: 0, Ni: 5 };
-            const prices = { Fe: 50, Ni: 150 };
-
-            const result = system.calculateSellValue(inventory, prices);
-
-            expect(result.totalValue).toBe(750);
-            expect(result.itemsSold).toEqual({ Ni: 5 });
-        });
-
-        it('should handle missing prices as zero', () => {
-            const inventory = { Fe: 10, Unknown: 5 };
-            const prices = { Fe: 50 };
-
-            const result = system.calculateSellValue(inventory, prices);
-
-            expect(result.totalValue).toBe(500);
-            expect(result.itemsSold).toEqual({ Fe: 10, Unknown: 5 });
-        });
-
-        it('should return empty result for empty inventory', () => {
-            const result = system.calculateSellValue({}, { Fe: 50 });
-
-            expect(result.totalValue).toBe(0);
-            expect(result.itemsSold).toEqual({});
-        });
-    });
-
     describe('findNewDiscoveries', () => {
         it('should find elements not yet discovered', () => {
             const collected = { Fe: 10, Ni: 5, Co: 2 };

@@ -20,15 +20,13 @@ export interface ToolBonuses {
     powerCostMultiplier: number; // 1.0 + sum of powerCostBonus
 }
 
-export interface BuyToolResult {
-    success: boolean;
-    error?: 'insufficient_credits' | 'already_owned';
-}
+export type BuyToolResult =
+    | { success: true }
+    | { success: false; error: 'insufficient_credits' | 'already_owned' };
 
-export interface EquipToolResult {
-    success: boolean;
-    error?: 'not_owned' | 'no_slot_available' | 'already_equipped';
-}
+export type EquipToolResult =
+    | { success: true }
+    | { success: false; error: 'not_owned' | 'no_slot_available' | 'already_equipped' };
 
 export interface IToolController {
     buyTool(toolId: string): BuyToolResult;

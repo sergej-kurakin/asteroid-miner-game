@@ -58,7 +58,9 @@ describe('ToolController', () => {
             const result = controller.buyTool('precision_cutter');
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('insufficient_credits');
+            if (!result.success) {
+                expect(result.error).toBe('insufficient_credits');
+            }
             expect(state$.getState().credits).toBe(100);
         });
 
@@ -67,14 +69,18 @@ describe('ToolController', () => {
             const result = controller.buyTool('precision_cutter');
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('already_owned');
+            if (!result.success) {
+                expect(result.error).toBe('already_owned');
+            }
         });
 
         it('should fail for invalid tool id', () => {
             const result = controller.buyTool('nonexistent_tool');
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('insufficient_credits');
+            if (!result.success) {
+                expect(result.error).toBe('insufficient_credits');
+            }
         });
     });
 
@@ -101,7 +107,9 @@ describe('ToolController', () => {
             const result = controller.equipTool('precision_cutter', 0);
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('not_owned');
+            if (!result.success) {
+                expect(result.error).toBe('not_owned');
+            }
         });
 
         it('should fail when slot is out of range', () => {
@@ -110,7 +118,9 @@ describe('ToolController', () => {
             const result = controller.equipTool('precision_cutter', 5);
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('no_slot_available');
+            if (!result.success) {
+                expect(result.error).toBe('no_slot_available');
+            }
         });
 
         it('should fail when tool is already equipped', () => {
@@ -120,7 +130,9 @@ describe('ToolController', () => {
             const result = controller.equipTool('precision_cutter', 1);
 
             expect(result.success).toBe(false);
-            expect(result.error).toBe('already_equipped');
+            if (!result.success) {
+                expect(result.error).toBe('already_equipped');
+            }
         });
 
         it('should replace tool in occupied slot', () => {

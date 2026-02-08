@@ -10,6 +10,7 @@ import type {
     IToolController
 } from './interfaces';
 import { TOOLS, TOOLS_BY_ID } from './constants';
+import { BuyToolCommand, EquipToolCommand, UnequipToolCommand } from './commands';
 
 export class ToolController implements IToolController {
     constructor(
@@ -33,11 +34,7 @@ export class ToolController implements IToolController {
             return { success: false, error: 'insufficient_credits' };
         }
 
-        this.state$.setState({
-            credits: state.credits - tool.cost,
-            tools_owned: [...state.tools_owned, toolId]
-        });
-
+        new BuyToolCommand(this.state$, tool).execute();
         return { success: true };
     }
 
@@ -59,26 +56,12 @@ export class ToolController implements IToolController {
             return { success: false, error: 'already_equipped' };
         }
 
-        // Replace whatever is in that slot (or add to it)
-        const newEquipped = state.equipped_tools.filter(t => t.slot !== slot);
-        newEquipped.push({ toolId, slot });
-
-        this.state$.setState({
-            equipped_tools: newEquipped
-        });
-
+        new EquipToolCommand(this.state$, toolId, slot).execute();
         return { success: true };
     }
 
     unequipTool(slot: number): void {
-        const state = this.state$.getState();
-        const newEquipped = state.equipped_tools.filter(t => t.slot !== slot);
-
-        if (newEquipped.length !== state.equipped_tools.length) {
-            this.state$.setState({
-                equipped_tools: newEquipped
-            });
-        }
+        new UnequipToolCommand(this.state$, slot).execute();
     }
 
     getEquippedTools(): EquippedTool[] {

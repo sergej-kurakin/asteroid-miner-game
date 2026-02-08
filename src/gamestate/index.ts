@@ -1,7 +1,7 @@
 // src/gamestate/index.ts
 // Public API for game state management
 
-export type { GameState } from './interfaces';
+export type { Command, GameState } from './interfaces';
 export {
     type Observable,
     StateObserver,

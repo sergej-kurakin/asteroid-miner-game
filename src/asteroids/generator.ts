@@ -129,14 +129,3 @@ export class AsteroidGenerator implements IAsteroidGenerator {
         return Math.round(baseYield * typeConfig.yieldBonus);
     }
 }
-
-// Default generator instance for backward compatibility
-const defaultGenerator = new AsteroidGenerator();
-
-/**
- * Generate a complete asteroid based on ship level
- * This is the main public function for asteroid generation (backward compatible)
- */
-export function generateAsteroid(shipLevel: number): Asteroid {
-    return defaultGenerator.generate(shipLevel);
-}
