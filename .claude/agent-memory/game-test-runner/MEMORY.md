@@ -1,15 +1,15 @@
 # Game Test Runner - Agent Memory
 
-## Test Suite Baseline (updated 2026-02-08, `another-refatoring` branch)
-- **30 test files**, **412 tests total** (all passing)
+## Test Suite Baseline (updated 2026-02-08 final, `another-refatoring` branch)
+- **33 test files**, **431 tests total** (all passing)
 - Typecheck: clean (0 errors)
-- Test run duration: ~3.7s tests, ~5.1s wall clock
+- Test run duration: ~3.7s tests, ~5.0s wall clock
 - Vitest v4.0.18
 
 ## Current Issues (as of 2026-02-08)
-- None. All typechecks and tests pass.
+- None. All typechecks and tests pass. Market refactoring complete with new market systems.
 
-## Test File Inventory (30 files)
+## Test File Inventory (33 files)
 | File | Tests | Status |
 |------|-------|--------|
 | src/mining/system.test.ts | 22 | pass |
@@ -25,8 +25,11 @@
 | src/power/controller.test.ts | 12 | pass |
 | src/power/commands.test.ts | 8 | pass |
 | src/market/mediator.test.ts | 4 | pass |
-| src/market/commands.test.ts | 5 | pass |
-| src/market/market.test.ts | 6 | pass |
+| src/market/commands.test.ts | 6 | pass |
+| src/market/market.test.ts | 8 | pass |
+| src/market/official-market-system.test.ts | 5 | pass |
+| src/market/black-market-system.test.ts | 6 | pass |
+| src/market/dump-market-system.test.ts | 5 | pass |
 | src/gamestate/observer.test.ts | 18 | pass |
 | src/persistence/transformer.test.ts | 9 | pass |
 | src/persistence/controller.test.ts | 4 | pass |
@@ -44,12 +47,16 @@
 | src/ui/components/status-display.test.ts | 6 | pass |
 
 ## Key Observations
-- New `src/market/` module added (mediator, commands, market) with 15 tests total
-- Mining module tests reduced (system 26->22, commands 25->20, controller 23->21) - selling logic moved to market
+- Market module expanded from 15 to 34 tests with three new market strategy systems:
+  - `OfficialMarketSystem` (5 tests) - premium prices
+  - `BlackMarketSystem` (6 tests) - variable prices with modifiers
+  - `DumpMarketSystem` (5 tests) - bulk liquidation
+  - Commands and mediator tests increased slightly
+- Mining module tests stable (system 22, commands 20, controller 21)
 - Persistence module stabilized (storage, transformer, controller all passing)
 - `Asteroid` interface includes `totalYield`, `miningTime`, `visualDiameter` fields
-- Slowest test files: tool-panel (~661ms), ship-info (~555ms), composition-grid (~429ms)
-- Non-UI tests run fast (<100ms each)
+- Slowest test files: tool-panel (~590ms), ship-info (~484ms), composition-grid (~500ms)
+- Non-UI tests run fast (<150ms each)
 - `npm run build` runs tests as part of pipeline (clean -> typecheck -> test -> bundle)
 
 ## Common Failure Patterns
