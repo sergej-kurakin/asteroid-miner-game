@@ -1,17 +1,21 @@
 # Game Test Runner - Agent Memory
 
-## Test Suite Baseline (updated 2026-02-08 final, `another-refatoring` branch)
-- **33 test files**, **431 tests total** (all passing)
+## Test Suite Baseline (updated 2026-02-08, `world` branch)
+- **35 test files**, **476 tests total** (all passing)
 - Typecheck: clean (0 errors)
-- Test run duration: ~3.7s tests, ~5.0s wall clock
+- Test run duration: ~5.4s tests, ~5.1s wall clock
 - Vitest v4.0.18
+- `src/ships/controller.test.ts` grew from 24 to 35 tests (ship travel implementation)
+- `src/ships/commands.test.ts` grew from 11 to 15 tests (ship travel commands)
 
 ## Current Issues (as of 2026-02-08)
-- None. All typechecks and tests pass. Market refactoring complete with new market systems.
+- None. All typechecks and tests pass. World module added with 2 new test files.
 
-## Test File Inventory (33 files)
+## Test File Inventory (35 files)
 | File | Tests | Status |
 |------|-------|--------|
+| src/world/utils.test.ts | 22 | pass |
+| src/world/generator.test.ts | 8 | pass |
 | src/mining/system.test.ts | 22 | pass |
 | src/mining/commands.test.ts | 20 | pass |
 | src/mining/controller.test.ts | 21 | pass |
@@ -20,8 +24,8 @@
 | src/asteroids/generator.test.ts | 20 | pass |
 | src/asteroids/controller.test.ts | 17 | pass |
 | src/asteroids/commands.test.ts | 9 | pass |
-| src/ships/controller.test.ts | 24 | pass |
-| src/ships/commands.test.ts | 11 | pass |
+| src/ships/controller.test.ts | 35 | pass |
+| src/ships/commands.test.ts | 15 | pass |
 | src/power/controller.test.ts | 12 | pass |
 | src/power/commands.test.ts | 8 | pass |
 | src/market/mediator.test.ts | 4 | pass |
