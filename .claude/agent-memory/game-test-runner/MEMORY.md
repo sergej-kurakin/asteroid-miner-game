@@ -1,14 +1,14 @@
 # Game Test Runner - Agent Memory
 
-## Test Suite Baseline (updated 2026-02-08 20:50, `world` branch)
-- **35 test files**, **491 tests total** (all passing as of latest run)
+## Test Suite Baseline (updated 2026-02-08 21:15, `world` branch)
+- **35 test files**, **496 tests total** (all passing as of latest run)
 - Typecheck: clean (0 errors)
-- Test run duration: 6.10s wall clock (8.15s test execution, 2.71s import)
+- Test run duration: 7.44s wall clock (9.72s test execution, 2.98s import)
 - Vitest v4.0.18
 - `src/world/generator.test.ts`: 13 tests (was 8, +5 new MiningConstraint/structure tests)
 
-## Current Issues (as of 2026-02-08 20:50)
-- None — all 491 tests passing
+## Current Issues (as of 2026-02-08 21:15)
+- None — all 496 tests passing
 
 ## Test File Inventory (35 files)
 | File | Tests | Status |
@@ -22,11 +22,11 @@
 | src/tools/commands.test.ts | 13 | pass |
 | src/asteroids/generator.test.ts | 23 | pass |
 | src/asteroids/controller.test.ts | 22 | pass |
-| src/asteroids/commands.test.ts | 9 | pass |
+| src/asteroids/commands.test.ts | 11 | pass |
 | src/ships/controller.test.ts | 35 | pass |
 | src/ships/commands.test.ts | 15 | pass |
-| src/power/controller.test.ts | 12 | pass |
-| src/power/commands.test.ts | 8 | pass |
+| src/power/controller.test.ts | 16 | pass |
+| src/power/commands.test.ts | 9 | pass |
 | src/market/mediator.test.ts | 4 | pass |
 | src/market/commands.test.ts | 6 | pass |
 | src/market/market.test.ts | 8 | pass |
