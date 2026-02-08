@@ -1,22 +1,20 @@
 # Game Test Runner - Agent Memory
 
-## Test Suite Baseline (updated 2026-02-08 14:57, `world` branch)
-- **35 test files**, **486 tests total** (all passing as of latest run)
+## Test Suite Baseline (updated 2026-02-08 20:50, `world` branch)
+- **35 test files**, **491 tests total** (all passing as of latest run)
 - Typecheck: clean (0 errors)
-- Test run duration: 6.04s wall clock (6.32s test execution, 2.86s import)
+- Test run duration: 6.10s wall clock (8.15s test execution, 2.71s import)
 - Vitest v4.0.18
-- `src/ships/controller.test.ts`: 35 tests (ship travel implementation)
-- `src/ships/commands.test.ts`: 15 tests (ship travel commands)
-- `src/asteroids/commands.test.ts`: 11 tests (was 9, +2 new)
+- `src/world/generator.test.ts`: 13 tests (was 8, +5 new MiningConstraint/structure tests)
 
-## Current Issues (as of 2026-02-08 14:57)
-- None — all 486 tests passing
+## Current Issues (as of 2026-02-08 20:50)
+- None — all 491 tests passing
 
 ## Test File Inventory (35 files)
 | File | Tests | Status |
 |------|-------|--------|
 | src/world/utils.test.ts | 22 | pass |
-| src/world/generator.test.ts | 8 | pass |
+| src/world/generator.test.ts | 13 | pass |
 | src/mining/system.test.ts | 22 | pass |
 | src/mining/commands.test.ts | 20 | pass |
 | src/mining/controller.test.ts | 21 | pass |
