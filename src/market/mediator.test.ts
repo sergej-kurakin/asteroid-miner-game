@@ -1,10 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { TradeMediator } from './mediator';
+import type { IMarketSystem } from './interfaces';
+
+const makeSystem = (priceMap: { [key: string]: number }): IMarketSystem => ({
+    evaluate: (inv) => Object.entries(inv).reduce(
+        (sum, [el, amt]) => sum + amt * (priceMap[el] ?? 0), 0
+    )
+});
 
 describe('TradeMediator', () => {
     describe('evaluate', () => {
         it('should calculate total value from inventory', () => {
-            const mediator = new TradeMediator({ Fe: 50, Ni: 150 });
+            const mediator = new TradeMediator(makeSystem({ Fe: 50, Ni: 150 }));
 
             const result = mediator.evaluate({ Fe: 10, Ni: 5 });
 
@@ -14,7 +21,7 @@ describe('TradeMediator', () => {
         });
 
         it('should handle zero amounts', () => {
-            const mediator = new TradeMediator({ Fe: 50, Ni: 150 });
+            const mediator = new TradeMediator(makeSystem({ Fe: 50, Ni: 150 }));
 
             const result = mediator.evaluate({ Fe: 0, Ni: 5 });
 
@@ -24,7 +31,7 @@ describe('TradeMediator', () => {
         });
 
         it('should handle missing prices as zero', () => {
-            const mediator = new TradeMediator({ Fe: 50 });
+            const mediator = new TradeMediator(makeSystem({ Fe: 50 }));
 
             const result = mediator.evaluate({ Fe: 10, Unknown: 5 });
 
@@ -34,7 +41,7 @@ describe('TradeMediator', () => {
         });
 
         it('should return null for empty inventory', () => {
-            const mediator = new TradeMediator({ Fe: 50 });
+            const mediator = new TradeMediator(makeSystem({ Fe: 50 }));
 
             const result = mediator.evaluate({});
 

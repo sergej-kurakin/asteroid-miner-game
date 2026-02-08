@@ -1,5 +1,5 @@
 import type { Observable, GameState } from '../gamestate';
-import type { ElementPrices, IMarket, SellAllResult } from './interfaces';
+import type { IMarket, SellAllResult, IMarketSystem } from './interfaces';
 import { TradeMediator } from './mediator';
 import { SellResourcesCommand } from './commands';
 
@@ -8,10 +8,10 @@ export class Market implements IMarket {
 
     constructor(
         private readonly state$: Observable<GameState>,
-        prices: ElementPrices,
+        marketSystem: IMarketSystem,
         mediator?: TradeMediator
     ) {
-        this.mediator = mediator ?? new TradeMediator(prices);
+        this.mediator = mediator ?? new TradeMediator(marketSystem);
     }
 
     sellAll(): SellAllResult {

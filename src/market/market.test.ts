@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Market } from './market';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
-import type { ElementPrices } from './interfaces';
+import type { IMarketSystem } from './interfaces';
 
 const createTestState = (overrides?: Partial<GameState>): GameState => ({
     credits: 1000,
@@ -21,8 +21,14 @@ const createTestState = (overrides?: Partial<GameState>): GameState => ({
     ...overrides
 });
 
+const makeSystem = (priceMap: { [key: string]: number }): IMarketSystem => ({
+    evaluate: (inv) => Object.entries(inv).reduce(
+        (sum, [el, amt]) => sum + amt * (priceMap[el] ?? 0), 0
+    )
+});
+
 describe('Market', () => {
-    const prices: ElementPrices = { Fe: 50, Ni: 150, Co: 200 };
+    const marketSystem = makeSystem({ Fe: 50, Ni: 150, Co: 200 });
 
     describe('sellAll', () => {
         it('should sell inventory and return success result', () => {
@@ -30,7 +36,7 @@ describe('Market', () => {
                 inventory: { Fe: 10, Ni: 5 },
                 hold_used: 15
             }));
-            const market = new Market(state$, prices);
+            const market = new Market(state$, marketSystem);
 
             const result = market.sellAll();
 
@@ -46,7 +52,7 @@ describe('Market', () => {
 
         it('should return failure for empty inventory', () => {
             const state$ = new StateObserver(createTestState());
-            const market = new Market(state$, prices);
+            const market = new Market(state$, marketSystem);
 
             const result = market.sellAll();
 
@@ -61,7 +67,7 @@ describe('Market', () => {
             const state$ = new StateObserver(createTestState({
                 inventory: { Fe: 0, Ni: 0 }
             }));
-            const market = new Market(state$, prices);
+            const market = new Market(state$, marketSystem);
 
             const result = market.sellAll();
 
@@ -74,14 +80,14 @@ describe('Market', () => {
             const state$ = new StateObserver(createTestState({
                 inventory: { Fe: 10 }
             }));
-            const market = new Market(state$, prices);
+            const market = new Market(state$, marketSystem);
 
             expect(market.canSell()).toBe(true);
         });
 
         it('should return false for empty inventory', () => {
             const state$ = new StateObserver(createTestState());
-            const market = new Market(state$, prices);
+            const market = new Market(state$, marketSystem);
 
             expect(market.canSell()).toBe(false);
         });
@@ -90,7 +96,7 @@ describe('Market', () => {
             const state$ = new StateObserver(createTestState({
                 inventory: { Fe: 0, Ni: 0 }
             }));
-            const market = new Market(state$, prices);
+            const market = new Market(state$, marketSystem);
 
             expect(market.canSell()).toBe(false);
         });

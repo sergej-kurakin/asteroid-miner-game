@@ -9,7 +9,7 @@ import { ShipController } from './ships';
 import { CONFIG } from './config/config';
 import { createPersistenceController, type IPersistenceController } from './persistence';
 import { MiningController, type IMiningController, type MiningEvent } from './mining';
-import { Market, type IMarket, type ElementPrices } from './market';
+import { Market, type IMarket, OfficialMarketSystem } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
 import {
@@ -240,18 +240,12 @@ function init(): void {
     const initialState = persistence.load();
     gameState$ = new StateObserver(initialState);
 
-    // Build element prices map from config
-    const elementPrices: ElementPrices = {};
-    for (const [symbol, data] of Object.entries(CONFIG.elements)) {
-        elementPrices[symbol] = data.price;
-    }
-
     // Initialize controllers
     shipController = new ShipController(gameState$);
     powerController = new PowerController(gameState$);
     toolController = new ToolController(gameState$, shipController);
     miningController = new MiningController(gameState$, toolController);
-    market = new Market(gameState$, elementPrices);
+    market = new Market(gameState$, new OfficialMarketSystem());
     asteroidsController = new AsteroidsController(gameState$);
 
     // Subscribe to mining events
