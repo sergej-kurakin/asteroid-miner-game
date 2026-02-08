@@ -1,5 +1,6 @@
 import type { GameState } from '../gamestate/interfaces';
 import type { EquippedTool } from '../tools/interfaces';
+import type { CellPosition } from '../world/interfaces';
 
 export interface SaveData {
     credits: number;
@@ -12,6 +13,7 @@ export interface SaveData {
     power_capacity: number;
     equipped_tools: EquippedTool[];
     tools_owned: string[];
+    current_cell: CellPosition;
 }
 
 export interface IGameStorage {

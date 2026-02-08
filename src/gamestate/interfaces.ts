@@ -1,5 +1,6 @@
 import type { Asteroid } from '../asteroids/interfaces';
 import type { EquippedTool } from '../tools/interfaces';
+import type { CellPosition } from '../world/interfaces';
 
 // Command pattern interface
 export interface Command<TResult> {
@@ -20,4 +21,5 @@ export interface GameState {
     power_capacity: number;
     equipped_tools: EquippedTool[];
     tools_owned: string[];
+    current_cell: CellPosition;
 }

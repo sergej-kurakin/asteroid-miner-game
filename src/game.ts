@@ -12,6 +12,7 @@ import { MiningController, type IMiningController, type MiningEvent } from './mi
 import { Market, type IMarket, OfficialMarketSystem, BlackMarketSystem, DumpMarketSystem } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
+import { WorldGenerator } from './world';
 import {
     type UIComponent,
     formatNumber,
@@ -257,6 +258,9 @@ function initComponents(): void {
 // INITIALIZATION
 // ========================================
 function init(): void {
+    // Generate static world (deterministic, used for navigation)
+    new WorldGenerator().generate();
+
     // Load saved game and create observable state
     persistence = createPersistenceController();
     const initialState = persistence.load();

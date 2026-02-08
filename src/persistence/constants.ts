@@ -1,4 +1,5 @@
 import type { SaveData } from './interfaces';
+import { ORIGIN } from '../world';
 
 export const STORAGE_KEY = 'asteroidMiner';
 
@@ -12,5 +13,6 @@ export const DEFAULT_SAVE_DATA: Readonly<SaveData> = {
     power: 100,
     power_capacity: 100,
     equipped_tools: [],
-    tools_owned: []
+    tools_owned: [],
+    current_cell: ORIGIN
 };

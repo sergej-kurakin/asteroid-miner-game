@@ -18,6 +18,7 @@ describe('transformer', () => {
         power_capacity: 150,
         equipped_tools: [{ toolId: 'laser_mk2', slot: 0 }],
         tools_owned: ['laser_mk2'],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides
     });
 
@@ -108,7 +109,8 @@ describe('transformer', () => {
             const state = toGameState({
                 discovered_elements: [],
                 equipped_tools: [],
-                tools_owned: []
+                tools_owned: [],
+                current_cell: { x: 0, y: 0, z: 0 },
             });
 
             expect(state.discovered_elements).toEqual([]);

@@ -18,6 +18,7 @@ const createTestState = (overrides?: Partial<GameState>): GameState => ({
     power_capacity: 100,
     equipped_tools: [],
     tools_owned: [],
+    current_cell: { x: 0, y: 0, z: 0 },
     ...overrides
 });
 
@@ -118,7 +119,8 @@ describe('UpgradeShipCommand', () => {
             is_mining: false,
             asteroid: null,
             discovered_elements: ['Fe', 'Si'],
-            tools_owned: ['laser_drill']
+            tools_owned: ['laser_drill'],
+            current_cell: { x: 0, y: 0, z: 0 },
         }));
         new UpgradeShipCommand(state$, nextShip).execute();
 
