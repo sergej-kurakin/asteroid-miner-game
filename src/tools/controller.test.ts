@@ -35,7 +35,9 @@ describe('ToolController', () => {
         upgrade: vi.fn(),
         getLevel: vi.fn().mockReturnValue(2),
         getMiningTime: vi.fn().mockReturnValue(2500),
-        getToolSlots: vi.fn().mockReturnValue(toolSlots)
+        getToolSlots: vi.fn().mockReturnValue(toolSlots),
+        calculateMoveCost: vi.fn().mockReturnValue(20),
+        travel: vi.fn()
     });
 
     beforeEach(() => {

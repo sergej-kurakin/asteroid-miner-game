@@ -13,6 +13,8 @@ import { Market, type IMarket, OfficialMarketSystem, BlackMarketSystem, DumpMark
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
 import { WorldGenerator } from './world';
+import type { World } from './world';
+import type { CellPosition } from './world';
 import {
     type UIComponent,
     formatNumber,
@@ -26,7 +28,8 @@ import {
     DiscoveryAlert,
     ControlButtons,
     AsteroidView,
-    ToolPanel
+    ToolPanel,
+    NavigationPanel
 } from './ui';
 
 // ========================================
@@ -41,6 +44,7 @@ let powerController: IPowerController;
 let asteroidsController: IAsteroidsController;
 let toolController: IToolController;
 let market: IMarket;
+let world: World;
 
 // ========================================
 // UI COMPONENTS
@@ -59,6 +63,21 @@ function handleShipUpgrade(): void {
     if (result.success) {
         statusDisplay.setMessage(`Upgraded to ${result.newShip.name}!`);
         persistence.save(gameState$.getState());
+    }
+}
+
+// ========================================
+// TRAVEL HELPER FUNCTIONS
+// ========================================
+function handleTravel(dest: CellPosition): void {
+    const result = shipController.travel(dest);
+    if (result.success) {
+        statusDisplay.setMessage(`Traveled to (${dest.x}, ${dest.y}, ${dest.z})`);
+        persistence.save(gameState$.getState());
+    } else if (result.error === 'insufficient_power') {
+        statusDisplay.setMessage('Insufficient Power');
+    } else if (result.error === 'is_mining') {
+        statusDisplay.setMessage('Cannot travel while mining');
     }
 }
 
@@ -228,7 +247,10 @@ function initComponents(): void {
             onScan: scanAsteroid,
             onMine: handleStartMining,
             onAbandon: abandonAsteroid
-        })
+        }),
+
+        // Navigation
+        new NavigationPanel(gameState$, world, handleTravel)
     ];
 
     // Mount all components
@@ -259,7 +281,7 @@ function initComponents(): void {
 // ========================================
 function init(): void {
     // Generate static world (deterministic, used for navigation)
-    new WorldGenerator().generate();
+    world = new WorldGenerator().generate();
 
     // Load saved game and create observable state
     persistence = createPersistenceController();

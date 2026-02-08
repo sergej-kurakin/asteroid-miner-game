@@ -854,6 +854,59 @@ body::before {
     opacity: 0.7;
 }
 
+.navigation-section {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid rgba(0, 153, 255, 0.3);
+    border-radius: 4px;
+    background: rgba(0, 153, 255, 0.04);
+}
+
+.navigation-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--secondary);
+    margin-bottom: 8px;
+}
+
+.nav-position {
+    font-size: 11px;
+    color: var(--secondary);
+    margin-bottom: 4px;
+}
+
+.nav-cell-type {
+    color: var(--gold);
+    font-size: 10px;
+}
+
+.nav-cost {
+    font-size: 10px;
+    color: rgba(0, 153, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.nav-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.btn-nav {
+    font-size: 10px;
+    padding: 4px 6px;
+    color: var(--secondary);
+    border-color: rgba(0, 153, 255, 0.4);
+    background: rgba(0, 153, 255, 0.08);
+}
+
+.btn-nav:not(:disabled):hover {
+    background: rgba(0, 153, 255, 0.2);
+    box-shadow: 0 0 8px rgba(0, 153, 255, 0.3);
+}
+
 .btn-sell {
     margin-top: 15px;
     color: var(--primary);
