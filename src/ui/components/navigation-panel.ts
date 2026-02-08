@@ -3,7 +3,7 @@
 
 import type { Observable, GameState } from '../../gamestate';
 import type { CellPosition, World } from '../../world';
-import { getCellAt, getMiningConstraint, isInBounds } from '../../world';
+import { getCellAt, isInBounds } from '../../world';
 import { CellType, MiningConstraint } from '../../world';
 import { BaseComponent } from '../base-component';
 
@@ -61,7 +61,7 @@ export class NavigationPanel extends BaseComponent {
 
         if (this.scanInfoEl) {
             const constraint = (cell?.type === CellType.Mining)
-                ? getMiningConstraint(this.world, state.current_cell)
+                ? cell.miningConstraint
                 : null;
 
             let scanInfo: string;

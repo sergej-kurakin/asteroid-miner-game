@@ -20,7 +20,6 @@ export {
     isInBounds,
     getCellsInRadius,
     getAdjacentCells,
-    getMiningConstraint,
     findPowerStations,
     findMarkets,
     nearestPowerStationDistance,

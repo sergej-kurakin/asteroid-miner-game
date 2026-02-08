@@ -1,14 +1,17 @@
 import type { CellPosition, IWorldGenerator, World } from './interfaces';
-import { CellType } from './interfaces';
+import { CellType, MiningConstraint } from './interfaces';
 import {
     GRID_SIZE,
+    MARKET_PROXIMITY_RADIUS,
     MINING_DENSITY,
     MIN_STRUCTURE_DISTANCE,
     NUM_MARKETS,
     NUM_POWER_STATIONS,
     ORIGIN,
+    POWER_STATION_PROXIMITY_RADIUS,
     WORLD_SEED,
 } from './constants';
+import { euclideanDistance } from './utils';
 
 function createSeededRandom(seed: number): () => number {
     let state = seed >>> 0;
@@ -36,13 +39,13 @@ export class WorldGenerator implements IWorldGenerator {
             for (let y = 0; y < GRID_SIZE; y++) {
                 for (let z = 0; z < GRID_SIZE; z++) {
                     const pos: CellPosition = { x, y, z };
-                    world.set(positionToKey(pos), { position: pos, type: CellType.Empty });
+                    world.set(positionToKey(pos), { position: pos, type: CellType.Empty, miningConstraint: MiningConstraint.Any });
                 }
             }
         }
 
         // Origin is always a Mining cell
-        world.set(positionToKey(ORIGIN), { position: { ...ORIGIN }, type: CellType.Mining });
+        world.set(positionToKey(ORIGIN), { position: { ...ORIGIN }, type: CellType.Mining, miningConstraint: MiningConstraint.Any });
 
         const specialPositions: CellPosition[] = [{ ...ORIGIN }];
 
@@ -55,8 +58,41 @@ export class WorldGenerator implements IWorldGenerator {
         // Fill remaining Empty cells with Mining based on density
         for (const [key, cell] of world) {
             if (cell.type === CellType.Empty && rng() < MINING_DENSITY) {
-                world.set(key, { position: cell.position, type: CellType.Mining });
+                world.set(key, { position: cell.position, type: CellType.Mining, miningConstraint: MiningConstraint.Any });
             }
+        }
+
+        // Final pass: compute real miningConstraint for every cell
+        const markets = Array.from(world.values()).filter(c => c.type === CellType.Market);
+        const stations = Array.from(world.values()).filter(c => c.type === CellType.PowerStation);
+
+        for (const [key, cell] of world) {
+            let constraint = MiningConstraint.Any;
+
+            // Near Market: no mining
+            for (const market of markets) {
+                if (euclideanDistance(cell.position, market.position) <= MARKET_PROXIMITY_RADIUS) {
+                    constraint = MiningConstraint.None;
+                    break;
+                }
+            }
+
+            if (constraint === MiningConstraint.Any) {
+                // Origin always SmallOnly
+                if (cell.position.x === ORIGIN.x && cell.position.y === ORIGIN.y && cell.position.z === ORIGIN.z) {
+                    constraint = MiningConstraint.SmallOnly;
+                } else {
+                    // Near Power Station: small only
+                    for (const station of stations) {
+                        if (euclideanDistance(cell.position, station.position) <= POWER_STATION_PROXIMITY_RADIUS) {
+                            constraint = MiningConstraint.SmallOnly;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            world.set(key, { ...cell, miningConstraint: constraint });
         }
 
         return world;
@@ -81,9 +117,10 @@ export class WorldGenerator implements IWorldGenerator {
             const pos: CellPosition = { x, y, z };
 
             if (this.isValidPlacement(pos, existing)) {
-                world.set(positionToKey(pos), { position: pos, type });
+                world.set(positionToKey(pos), { position: pos, type, miningConstraint: MiningConstraint.Any });
                 existing.push(pos);
                 placed++;
+                console.log(`Placed ${type} at (${x}, ${y}, ${z})`);
             }
         }
     }

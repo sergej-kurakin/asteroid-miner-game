@@ -3,7 +3,7 @@ import { AsteroidsController } from './controller';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { World } from '../world/interfaces';
-import { CellType } from '../world/interfaces';
+import { CellType, MiningConstraint } from '../world/interfaces';
 import { positionKey } from '../world/utils';
 import { SCAN_POWER_COST } from './constants';
 
@@ -252,10 +252,10 @@ describe('AsteroidsController', () => {
     });
 
     describe('world constraints', () => {
-        function makeWorld(cells: Array<{ pos: { x: number; y: number; z: number }; type: CellType }>): World {
+        function makeWorld(cells: Array<{ pos: { x: number; y: number; z: number }; type: CellType; miningConstraint?: MiningConstraint }>): World {
             const world: World = new Map();
-            for (const { pos, type } of cells) {
-                world.set(positionKey(pos), { position: pos, type });
+            for (const { pos, type, miningConstraint = MiningConstraint.Any } of cells) {
+                world.set(positionKey(pos), { position: pos, type, miningConstraint });
             }
             return world;
         }
@@ -276,7 +276,7 @@ describe('AsteroidsController', () => {
             // Place a market at (0,0,0) and a mining cell at (1,0,0) within radius 3
             const world = makeWorld([
                 { pos: { x: 0, y: 0, z: 0 }, type: CellType.Market },
-                { pos: { x: 1, y: 0, z: 0 }, type: CellType.Mining }
+                { pos: { x: 1, y: 0, z: 0 }, type: CellType.Mining, miningConstraint: MiningConstraint.None }
             ]);
             const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 1, y: 0, z: 0 } }));
             const controller = new AsteroidsController(state$, undefined, world);

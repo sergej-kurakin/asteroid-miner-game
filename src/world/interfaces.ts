@@ -14,6 +14,7 @@ export enum CellType {
 export interface Cell {
     position: CellPosition;
     type: CellType;
+    miningConstraint: MiningConstraint;
 }
 
 export enum MiningConstraint {

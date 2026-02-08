@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { WorldGenerator } from './generator';
-import { CellType } from './interfaces';
+import { CellType, MiningConstraint } from './interfaces';
 import { GRID_SIZE, MIN_STRUCTURE_DISTANCE, NUM_MARKETS, NUM_POWER_STATIONS, ORIGIN } from './constants';
 import { manhattanDistance } from './utils';
 
@@ -68,6 +68,41 @@ describe('WorldGenerator', () => {
             expect(cell.position.y).toBeLessThan(GRID_SIZE);
             expect(cell.position.z).toBeGreaterThanOrEqual(0);
             expect(cell.position.z).toBeLessThan(GRID_SIZE);
+        }
+    });
+
+    it('origin cell has SmallOnly constraint', () => {
+        const world = generator.generate();
+        const cell = world.get(`${ORIGIN.x},${ORIGIN.y},${ORIGIN.z}`);
+        expect(cell?.miningConstraint).toBe(MiningConstraint.SmallOnly);
+    });
+
+    it('cell within radius 3 of a market has None constraint', () => {
+        // Market is at (3,11,5); cell (3,11,3) is distance 2 away
+        const world = generator.generate();
+        const cell = world.get('3,11,3');
+        expect(cell?.miningConstraint).toBe(MiningConstraint.None);
+    });
+
+    it('cell within radius 3 of a power station (not near market) has SmallOnly constraint', () => {
+        // Station at (4,7,0); cell (4,7,2) is distance 2 away
+        const world = generator.generate();
+        const cell = world.get('4,7,2');
+        expect(cell?.miningConstraint).toBe(MiningConstraint.SmallOnly);
+    });
+
+    it('cell far from all structures has Any constraint', () => {
+        // (10,10,10) is far from all markets and power stations
+        const world = generator.generate();
+        const cell = world.get('10,10,10');
+        expect(cell?.miningConstraint).toBe(MiningConstraint.Any);
+    });
+
+    it('all cells have a miningConstraint property', () => {
+        const world = generator.generate();
+        for (const cell of world.values()) {
+            expect(cell.miningConstraint).toBeDefined();
+            expect(Object.values(MiningConstraint)).toContain(cell.miningConstraint);
         }
     });
 });
