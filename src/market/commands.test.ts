@@ -111,6 +111,9 @@ describe('SellResourcesCommand', () => {
         const result = new SellResourcesCommand(state$, mediator).execute();
 
         expect(result.success).toBe(false);
-        expect(result.error).toBe('empty_hold');
+
+        if (result.success=== false) {
+            expect(result.error).toBe('empty_hold');
+        }            
     });
 });
