@@ -34,7 +34,9 @@ describe('InventoryList', () => {
     const setupDOM = () => {
         document.body.innerHTML = `
             <div id="inventory-list"></div>
-            <button id="btn-sell"></button>
+            <button id="btn-sell-official"></button>
+            <button id="btn-sell-black"></button>
+            <button id="btn-sell-dump"></button>
         `;
     };
 
@@ -76,9 +78,13 @@ describe('InventoryList', () => {
             expect(el?.querySelector('.inventory-empty')?.textContent).toBe('Hold is empty');
         });
 
-        it('disables sell button', () => {
-            const btn = document.getElementById('btn-sell') as HTMLButtonElement;
-            expect(btn.disabled).toBe(true);
+        it('disables sell buttons', () => {
+            const btnOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            const btnBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
+            const btnDump = document.getElementById('btn-sell-dump') as HTMLButtonElement;
+            expect(btnOfficial.disabled).toBe(true);
+            expect(btnBlack.disabled).toBe(true);
+            expect(btnDump.disabled).toBe(true);
         });
 
         it('treats zero-quantity items as empty', () => {
@@ -128,11 +134,15 @@ describe('InventoryList', () => {
             expect(el?.innerHTML).toContain('Co');
         });
 
-        it('enables sell button when items present', () => {
+        it('enables sell buttons when items present', () => {
             state$.updateProperty('inventory', { Fe: 10 });
 
-            const btn = document.getElementById('btn-sell') as HTMLButtonElement;
-            expect(btn.disabled).toBe(false);
+            const btnOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            const btnBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
+            const btnDump = document.getElementById('btn-sell-dump') as HTMLButtonElement;
+            expect(btnOfficial.disabled).toBe(false);
+            expect(btnBlack.disabled).toBe(false);
+            expect(btnDump.disabled).toBe(false);
         });
 
         it('filters out zero-quantity items', () => {

@@ -4,19 +4,26 @@ import { TradeMediator } from './mediator';
 import { SellResourcesCommand } from './commands';
 
 export class Market implements IMarket {
-    private readonly mediator: TradeMediator;
+    private readonly strategies: Map<string, IMarketSystem>;
 
     constructor(
         private readonly state$: Observable<GameState>,
-        marketSystem: IMarketSystem,
-        mediator?: TradeMediator
+        strategies: Record<string, IMarketSystem> | Map<string, IMarketSystem>
     ) {
-        this.mediator = mediator ?? new TradeMediator(marketSystem);
+        this.strategies = strategies instanceof Map
+            ? strategies
+            : new Map(Object.entries(strategies));
     }
 
-    sellAll(): SellAllResult {
+    sellAll(key: string): SellAllResult {
+        const strategy = this.strategies.get(key);
+        if (!strategy) {
+            return { success: false, error: 'empty_hold' };
+        }
+
         const state = this.state$.getState();
-        const transaction = this.mediator.evaluate(state.inventory);
+        const mediator = new TradeMediator(strategy);
+        const transaction = mediator.evaluate(state.inventory);
 
         if (!transaction) {
             return { success: false, error: 'empty_hold' };

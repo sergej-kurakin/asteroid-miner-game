@@ -9,7 +9,7 @@ import { ShipController } from './ships';
 import { CONFIG } from './config/config';
 import { createPersistenceController, type IPersistenceController } from './persistence';
 import { MiningController, type IMiningController, type MiningEvent } from './mining';
-import { Market, type IMarket, OfficialMarketSystem } from './market';
+import { Market, type IMarket, OfficialMarketSystem, BlackMarketSystem, DumpMarketSystem } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
 import {
@@ -169,12 +169,24 @@ function handleStartMining(): void {
 // ========================================
 // SELL RESOURCES
 // ========================================
-function handleSellResources(): void {
-    const result = market.sellAll();
+function handleSellResources(marketKey: string): void {
+    const result = market.sellAll(marketKey);
     if (result.success) {
         statusDisplay.setMessage(`Sold for ${formatNumber(result.totalValue)} credits`);
         persistence.save(gameState$.getState());
     }
+}
+
+function handleSellOfficial(): void {
+    handleSellResources('official');
+}
+
+function handleSellBlack(): void {
+    handleSellResources('black');
+}
+
+function handleSellDump(): void {
+    handleSellResources('dump');
 }
 
 // ========================================
@@ -224,10 +236,20 @@ function initComponents(): void {
         components.push(component);
     }
 
-    // Attach sell button listener (not part of component system)
-    const btnSell = document.getElementById('btn-sell') as HTMLButtonElement;
-    if (btnSell) {
-        btnSell.addEventListener('click', handleSellResources);
+    // Attach sell button listeners (not part of component system)
+    const btnSellOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
+    if (btnSellOfficial) {
+        btnSellOfficial.addEventListener('click', handleSellOfficial);
+    }
+
+    const btnSellBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
+    if (btnSellBlack) {
+        btnSellBlack.addEventListener('click', handleSellBlack);
+    }
+
+    const btnSellDump = document.getElementById('btn-sell-dump') as HTMLButtonElement;
+    if (btnSellDump) {
+        btnSellDump.addEventListener('click', handleSellDump);
     }
 }
 
@@ -245,7 +267,11 @@ function init(): void {
     powerController = new PowerController(gameState$);
     toolController = new ToolController(gameState$, shipController);
     miningController = new MiningController(gameState$, toolController);
-    market = new Market(gameState$, new OfficialMarketSystem());
+    market = new Market(gameState$, {
+        official: new OfficialMarketSystem(),
+        black: new BlackMarketSystem(),
+        dump: new DumpMarketSystem()
+    });
     asteroidsController = new AsteroidsController(gameState$);
 
     // Subscribe to mining events

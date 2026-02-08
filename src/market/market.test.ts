@@ -36,9 +36,9 @@ describe('Market', () => {
                 inventory: { Fe: 10, Ni: 5 },
                 hold_used: 15
             }));
-            const market = new Market(state$, marketSystem);
+            const market = new Market(state$, { official: marketSystem });
 
-            const result = market.sellAll();
+            const result = market.sellAll('official');
 
             expect(result.success).toBe(true);
             if (result.success) {
@@ -52,9 +52,9 @@ describe('Market', () => {
 
         it('should return failure for empty inventory', () => {
             const state$ = new StateObserver(createTestState());
-            const market = new Market(state$, marketSystem);
+            const market = new Market(state$, { official: marketSystem });
 
-            const result = market.sellAll();
+            const result = market.sellAll('official');
 
             expect(result.success).toBe(false);
             if (!result.success) {
@@ -67,11 +67,43 @@ describe('Market', () => {
             const state$ = new StateObserver(createTestState({
                 inventory: { Fe: 0, Ni: 0 }
             }));
-            const market = new Market(state$, marketSystem);
+            const market = new Market(state$, { official: marketSystem });
 
-            const result = market.sellAll();
+            const result = market.sellAll('official');
 
             expect(result.success).toBe(false);
+        });
+
+        it('should return failure for unknown market key', () => {
+            const state$ = new StateObserver(createTestState({
+                inventory: { Fe: 10 }
+            }));
+            const market = new Market(state$, { official: marketSystem });
+
+            const result = market.sellAll('unknown');
+
+            expect(result.success).toBe(false);
+        });
+
+        it('should support multiple strategies', () => {
+            const state$ = new StateObserver(createTestState({
+                inventory: { Fe: 10 }
+            }));
+            const officialSystem = makeSystem({ Fe: 50 });
+            const blackMarketSystem = makeSystem({ Fe: 75 });
+            const market = new Market(state$, {
+                official: officialSystem,
+                black: blackMarketSystem
+            });
+
+            const officialResult = market.sellAll('official');
+            expect(officialResult.success && officialResult.totalValue).toBe(500);
+
+            // Reset inventory
+            state$.setState({ ...state$.getState(), inventory: { Fe: 10 }, credits: 1000 });
+
+            const blackResult = market.sellAll('black');
+            expect(blackResult.success && blackResult.totalValue).toBe(750);
         });
     });
 
@@ -80,14 +112,14 @@ describe('Market', () => {
             const state$ = new StateObserver(createTestState({
                 inventory: { Fe: 10 }
             }));
-            const market = new Market(state$, marketSystem);
+            const market = new Market(state$, { official: marketSystem });
 
             expect(market.canSell()).toBe(true);
         });
 
         it('should return false for empty inventory', () => {
             const state$ = new StateObserver(createTestState());
-            const market = new Market(state$, marketSystem);
+            const market = new Market(state$, { official: marketSystem });
 
             expect(market.canSell()).toBe(false);
         });
@@ -96,7 +128,7 @@ describe('Market', () => {
             const state$ = new StateObserver(createTestState({
                 inventory: { Fe: 0, Ni: 0 }
             }));
-            const market = new Market(state$, marketSystem);
+            const market = new Market(state$, { official: marketSystem });
 
             expect(market.canSell()).toBe(false);
         });

@@ -16,7 +16,7 @@ export type SellAllResult =
 
 // Public market interface
 export interface IMarket {
-    sellAll(): SellAllResult;
+    sellAll(key: string): SellAllResult;
     canSell(): boolean;
 }
 
