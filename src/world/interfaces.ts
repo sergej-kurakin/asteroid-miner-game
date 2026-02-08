@@ -15,3 +15,15 @@ export interface Cell {
     position: CellPosition;
     type: CellType;
 }
+
+export enum MiningConstraint {
+    Any = 'any',
+    SmallOnly = 'small_only',
+    None = 'none',
+}
+
+export type World = Map<string, Cell>;
+
+export interface IWorldGenerator {
+    generate(): World;
+}
