@@ -280,6 +280,44 @@ body::before {
     flex-direction: column;
 }
 
+/* Two equal halves split by a horizontal divider.
+   Each is a distinct sub-panel with its own rounded corners. */
+.center-panel__half {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Sub-panel background matches outer panel; visible against the divider */
+    background: var(--panel-bg);
+}
+
+/* Top half: round the bottom corners only */
+.center-panel__half--top {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Bottom half: round the top corners only */
+.center-panel__half--bottom {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+/* Give the bottom-half title breathing room after the divider line */
+.center-panel__half--bottom > .panel-title {
+    margin-top: 15px;
+}
+
+/* Solid green divider line matching the panel border color */
+.center-panel__divider {
+    flex-shrink: 0;
+    height: 2px;
+    background: var(--primary);
+    /* Subtle phosphor glow matching the panel border-glow style */
+    box-shadow: 0 0 6px var(--primary), 0 0 12px rgba(0, 255, 136, 0.3);
+    margin: 0 -20px; /* extend edge-to-edge across panel padding */
+}
+
 .asteroid-view {
     flex: 1;
     display: flex;
@@ -287,7 +325,7 @@ body::before {
     align-items: center;
     justify-content: center;
     position: relative;
-    min-height: 250px;
+    min-height: 0; /* allow shrinking within the half container */
 }
 
 .asteroid {
@@ -366,9 +404,10 @@ body::before {
 }
 
 .composition-section {
+    /* Internal top separator kept subtle — the main panel divider line separates halves */
     border-top: 1px solid rgba(0, 255, 136, 0.3);
-    padding-top: 20px;
-    margin-top: 20px;
+    padding-top: 15px;
+    margin-top: 10px;
 }
 
 .composition-title {
@@ -855,7 +894,7 @@ body::before {
 }
 
 .navigation-section {
-    margin-top: 15px;
+    /* margin-top removed — navigation-section now lives in its own half container */
     padding: 10px;
     border: 1px solid rgba(0, 153, 255, 0.3);
     border-radius: 4px;

@@ -66,46 +66,54 @@
 
         <!-- CENTER PANEL - Asteroid View -->
         <div class="panel center-panel">
-            <div class="panel-title">Sector View</div>
-
-            <div class="asteroid-view">
-                <div class="asteroid" id="asteroid"></div>
-                <div class="asteroid-placeholder" id="asteroid-placeholder">
-                    No Asteroid Detected<br>
-                    <span style="font-size: 11px; opacity: 0.5;">Initiate scan to locate</span>
+            <!-- Top half: asteroid display and composition -->
+            <div class="center-panel__half center-panel__half--top">
+                <div class="panel-title">Asteroid View</div>
+                <div class="asteroid-view">
+                    <div class="asteroid" id="asteroid"></div>
+                    <div class="asteroid-placeholder" id="asteroid-placeholder">
+                        No Asteroid Detected<br>
+                        <span style="font-size: 11px; opacity: 0.5;">Initiate scan to locate</span>
+                    </div>
+                    <div class="mining-progress-container" id="mining-progress-container">
+                        <div class="mining-progress-label">Mining Progress</div>
+                        <div class="mining-progress">
+                            <div class="mining-progress-fill" id="mining-progress-fill"></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="mining-progress-container" id="mining-progress-container">
-                    <div class="mining-progress-label">Mining Progress</div>
-                    <div class="mining-progress">
-                        <div class="mining-progress-fill" id="mining-progress-fill"></div>
+
+                <div class="composition-section">
+                    <div class="composition-title">Asteroid Composition</div>
+                    <div class="composition-grid" id="composition-grid">
+                        <div class="composition-item" style="opacity: 0.3;">
+                            <div class="composition-element">--</div>
+                            <div class="composition-percent">--%</div>
+                        </div>
+                        <div class="composition-item" style="opacity: 0.3;">
+                            <div class="composition-element">--</div>
+                            <div class="composition-percent">--%</div>
+                        </div>
+                        <div class="composition-item" style="opacity: 0.3;">
+                            <div class="composition-element">--</div>
+                            <div class="composition-percent">--%</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="composition-section">
-                <div class="composition-title">Asteroid Composition</div>
-                <div class="composition-grid" id="composition-grid">
-                    <div class="composition-item" style="opacity: 0.3;">
-                        <div class="composition-element">--</div>
-                        <div class="composition-percent">--%</div>
-                    </div>
-                    <div class="composition-item" style="opacity: 0.3;">
-                        <div class="composition-element">--</div>
-                        <div class="composition-percent">--%</div>
-                    </div>
-                    <div class="composition-item" style="opacity: 0.3;">
-                        <div class="composition-element">--</div>
-                        <div class="composition-percent">--%</div>
-                    </div>
-                </div>
-            </div>
+            <!-- Horizontal divider matching panel border style -->
+            <div class="center-panel__divider" role="separator" aria-hidden="true"></div>
 
-            <div class="navigation-section">
-                <div class="navigation-title">Navigation</div>
-                <div id="nav-position" class="nav-position"></div>
-                <div id="nav-cost" class="nav-cost"></div>
-                <div id="nav-scan-info" class="nav-scan-info"></div>
-                <div id="nav-controls" class="nav-controls"></div>
+            <!-- Bottom half: navigation -->
+            <div class="center-panel__half center-panel__half--bottom">
+                <div class="panel-title">Navigation</div>
+                <div class="navigation-section">
+                    <div id="nav-position" class="nav-position"></div>
+                    <div id="nav-cost" class="nav-cost"></div>
+                    <div id="nav-scan-info" class="nav-scan-info"></div>
+                    <div id="nav-controls" class="nav-controls"></div>
+                </div>
             </div>
         </div>
 
