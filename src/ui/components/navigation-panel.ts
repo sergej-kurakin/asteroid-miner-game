@@ -148,8 +148,11 @@ export class NavigationPanel extends BaseComponent {
             const nearestMarket = this.findNearestMarket(currentPos);
             if (nearestMarket) {
                 const { x, y, z } = nearestMarket.cell.position;
+                const distanceDisplay = nearestMarket.distance === 0
+                    ? '<span class="at-location">AT THIS LOCATION</span>'
+                    : `${nearestMarket.distance} units`;
                 this.nearestMarketEl.innerHTML =
-                    `<span>Market:</span><span>(${x}, ${y}, ${z}) - ${nearestMarket.distance} units</span>`;
+                    `<span>Market:</span><span>(${x}, ${y}, ${z}) - ${distanceDisplay}</span>`;
             } else {
                 this.nearestMarketEl.innerHTML = '<span>Market:</span><span>None found</span>';
             }
@@ -159,8 +162,11 @@ export class NavigationPanel extends BaseComponent {
             const nearestPower = this.findNearestPowerStation(currentPos);
             if (nearestPower) {
                 const { x, y, z } = nearestPower.cell.position;
+                const distanceDisplay = nearestPower.distance === 0
+                    ? '<span class="at-location">AT THIS LOCATION</span>'
+                    : `${nearestPower.distance} units`;
                 this.nearestPowerEl.innerHTML =
-                    `<span>Power:</span><span>(${x}, ${y}, ${z}) - ${nearestPower.distance} units</span>`;
+                    `<span>Power:</span><span>(${x}, ${y}, ${z}) - ${distanceDisplay}</span>`;
             } else {
                 this.nearestPowerEl.innerHTML = '<span>Power:</span><span>None found</span>';
             }

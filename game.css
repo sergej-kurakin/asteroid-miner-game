@@ -899,6 +899,14 @@ body::before {
     justify-content: space-between;
 }
 
+/* At location indicator in navigation panel */
+.at-location {
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Navigation controls grid layout */
 .nav-controls-grid {
     display: grid;
@@ -946,4 +954,14 @@ body::before {
 .btn-sell:not(:disabled):hover {
     background: rgba(0, 255, 136, 0.25);
     box-shadow: 0 0 20px var(--primary);
+}
+
+/* Sell button states */
+.btn-sell--not-at-market {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-sell--empty {
+    opacity: 0.3;
 }

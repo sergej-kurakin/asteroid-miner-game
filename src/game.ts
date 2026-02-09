@@ -229,7 +229,7 @@ function initComponents(): void {
         asteroidView,
 
         // Complex components
-        new InventoryList(gameState$, CONFIG.elements),
+        new InventoryList(gameState$, CONFIG.elements, world),
         new ShipInfo(gameState$, shipController, handleShipUpgrade),
         new PowerButton(gameState$, powerController, handleBuyPower),
         new ToolPanel(gameState$, toolController, {

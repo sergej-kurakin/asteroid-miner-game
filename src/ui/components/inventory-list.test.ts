@@ -3,10 +3,13 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { InventoryList } from './inventory-list';
 import { StateObserver } from '../../gamestate/observer';
 import type { GameState } from '../../gamestate';
+import type { World } from '../../world';
+import { CellType, MiningConstraint } from '../../world';
 
 describe('InventoryList', () => {
     let state$: StateObserver<GameState>;
     let list: InventoryList;
+    let mockWorld: World;
 
     const mockElements = {
         Fe: { name: 'Iron', price: 50 },
@@ -42,9 +45,22 @@ describe('InventoryList', () => {
     };
 
     beforeEach(() => {
+        // Create mock world with market at (5, 5, 5) and mining at origin
+        mockWorld = new Map();
+        mockWorld.set('0,0,0', {
+            position: { x: 0, y: 0, z: 0 },
+            type: CellType.Mining,
+            miningConstraint: MiningConstraint.SmallOnly
+        });
+        mockWorld.set('5,5,5', {
+            position: { x: 5, y: 5, z: 5 },
+            type: CellType.Market,
+            miningConstraint: MiningConstraint.None
+        });
+
         setupDOM();
         state$ = new StateObserver<GameState>(createInitialState());
-        list = new InventoryList(state$, mockElements);
+        list = new InventoryList(state$, mockElements, mockWorld);
     });
 
     afterEach(() => {
@@ -135,8 +151,12 @@ describe('InventoryList', () => {
             expect(el?.innerHTML).toContain('Co');
         });
 
-        it('enables sell buttons when items present', () => {
-            state$.updateProperty('inventory', { Fe: 10 });
+        it('enables sell buttons when items present and at market', () => {
+            state$.setState({
+                ...state$.getState(),
+                inventory: { Fe: 10 },
+                current_cell: { x: 5, y: 5, z: 5 } // At market
+            });
 
             const btnOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
             const btnBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
@@ -200,7 +220,7 @@ describe('InventoryList', () => {
     describe('handles missing DOM elements gracefully', () => {
         it('does not throw when DOM elements are missing', () => {
             document.body.innerHTML = '';
-            const listWithoutDOM = new InventoryList(state$, mockElements);
+            const listWithoutDOM = new InventoryList(state$, mockElements, mockWorld);
 
             expect(() => {
                 listWithoutDOM.mount();
@@ -208,6 +228,98 @@ describe('InventoryList', () => {
             }).not.toThrow();
 
             listWithoutDOM.destroy();
+        });
+    });
+
+    describe('location-based selling', () => {
+        beforeEach(() => {
+            list.mount();
+        });
+
+        it('disables sell buttons when not at market (even with inventory)', () => {
+            state$.setState({
+                ...state$.getState(),
+                inventory: { Fe: 10 },
+                current_cell: { x: 0, y: 0, z: 0 }
+            });
+
+            const btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.disabled).toBe(true);
+            expect(btn.classList.contains('btn-sell--not-at-market')).toBe(true);
+        });
+
+        it('enables sell buttons when at market with inventory', () => {
+            state$.setState({
+                ...state$.getState(),
+                inventory: { Fe: 10 },
+                current_cell: { x: 5, y: 5, z: 5 }
+            });
+
+            const btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.disabled).toBe(false);
+            expect(btn.classList.contains('btn-sell--not-at-market')).toBe(false);
+        });
+
+        it('updates button state when traveling to market', () => {
+            state$.setState({
+                ...state$.getState(),
+                inventory: { Fe: 10 },
+                current_cell: { x: 0, y: 0, z: 0 }
+            });
+
+            let btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.disabled).toBe(true);
+
+            // Travel to market
+            state$.updateProperty('current_cell', { x: 5, y: 5, z: 5 });
+
+            btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.disabled).toBe(false);
+        });
+
+        it('keeps buttons disabled at market when inventory empty', () => {
+            state$.setState({
+                ...state$.getState(),
+                inventory: {},
+                current_cell: { x: 5, y: 5, z: 5 }
+            });
+
+            const btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.disabled).toBe(true);
+            expect(btn.classList.contains('btn-sell--empty')).toBe(true);
+        });
+
+        it('applies correct CSS class based on disabled reason', () => {
+            // Empty inventory, not at market - prioritize empty state
+            state$.setState({
+                ...state$.getState(),
+                inventory: {},
+                current_cell: { x: 0, y: 0, z: 0 }
+            });
+
+            let btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.classList.contains('btn-sell--empty')).toBe(true);
+
+            // Has inventory, not at market
+            state$.updateProperty('inventory', { Fe: 10 });
+            btn = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            expect(btn.classList.contains('btn-sell--not-at-market')).toBe(true);
+        });
+
+        it('applies location check to all three sell buttons', () => {
+            state$.setState({
+                ...state$.getState(),
+                inventory: { Fe: 10 },
+                current_cell: { x: 0, y: 0, z: 0 }
+            });
+
+            const btnOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
+            const btnBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
+            const btnDump = document.getElementById('btn-sell-dump') as HTMLButtonElement;
+
+            expect(btnOfficial.disabled).toBe(true);
+            expect(btnBlack.disabled).toBe(true);
+            expect(btnDump.disabled).toBe(true);
         });
     });
 });

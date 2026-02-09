@@ -2,6 +2,8 @@
 // Inventory list component with sell button state management
 
 import type { Observable, GameState } from '../../gamestate';
+import type { World } from '../../world';
+import { getCellAt, CellType } from '../../world';
 import { BaseComponent } from '../base-component';
 import { formatNumber } from '../utils';
 
@@ -17,7 +19,11 @@ export class InventoryList extends BaseComponent {
     private sellBtnDump: HTMLButtonElement | null = null;
     private elements: { [symbol: string]: ElementConfig };
 
-    constructor(state$: Observable<GameState>, elements: { [symbol: string]: ElementConfig }) {
+    constructor(
+        state$: Observable<GameState>,
+        elements: { [symbol: string]: ElementConfig },
+        private readonly world: World
+    ) {
         super(state$);
         this.elements = elements;
     }
@@ -27,8 +33,47 @@ export class InventoryList extends BaseComponent {
         this.sellBtnOfficial = document.getElementById('btn-sell-official') as HTMLButtonElement;
         this.sellBtnBlack = document.getElementById('btn-sell-black') as HTMLButtonElement;
         this.sellBtnDump = document.getElementById('btn-sell-dump') as HTMLButtonElement;
-        this.subscribeToMultiple(['inventory', 'hold_used'], () => this.render());
+        this.subscribeToMultiple(['inventory', 'hold_used', 'current_cell'], () => this.render());
         this.render();
+    }
+
+    private isAtMarket(): boolean {
+        const state = this.state$.getState();
+        const cell = getCellAt(this.world, state.current_cell);
+        return cell?.type === CellType.Market;
+    }
+
+    private hasInventoryItems(): boolean {
+        const inventory = this.state$.getState().inventory;
+        return Object.values(inventory).some(amount => amount > 0);
+    }
+
+    private updateButtonStates(): void {
+        const hasItems = this.hasInventoryItems();
+        const atMarket = this.isAtMarket();
+        const canSell = hasItems && atMarket;
+
+        if (this.sellBtnOfficial) {
+            this.sellBtnOfficial.disabled = !canSell;
+            this.updateButtonClass(this.sellBtnOfficial, hasItems, atMarket);
+        }
+        if (this.sellBtnBlack) {
+            this.sellBtnBlack.disabled = !canSell;
+            this.updateButtonClass(this.sellBtnBlack, hasItems, atMarket);
+        }
+        if (this.sellBtnDump) {
+            this.sellBtnDump.disabled = !canSell;
+            this.updateButtonClass(this.sellBtnDump, hasItems, atMarket);
+        }
+    }
+
+    private updateButtonClass(button: HTMLButtonElement, hasItems: boolean, atMarket: boolean): void {
+        button.classList.remove('btn-sell--empty', 'btn-sell--not-at-market');
+        if (!hasItems) {
+            button.classList.add('btn-sell--empty');
+        } else if (!atMarket) {
+            button.classList.add('btn-sell--not-at-market');
+        }
     }
 
     render(): void {
@@ -39,40 +84,25 @@ export class InventoryList extends BaseComponent {
 
         if (items.length === 0) {
             this.listEl.innerHTML = '<div class="inventory-empty">Hold is empty</div>';
-            this.disableAllButtons();
-            return;
-        }
-
-        this.enableAllButtons();
-
-        let html = '';
-        for (const el of items) {
-            const amount = inventory[el];
-            const price = this.elements[el]?.price ?? 0;
-            const value = amount * price;
-            html += `
-                <div class="inventory-item">
-                    <div class="inventory-element">${el}</div>
-                    <div class="inventory-details">
-                        <div class="inventory-amount">${amount} kg</div>
-                        <div class="inventory-value">${formatNumber(value)} cr</div>
+        } else {
+            let html = '';
+            for (const el of items) {
+                const amount = inventory[el];
+                const price = this.elements[el]?.price ?? 0;
+                const value = amount * price;
+                html += `
+                    <div class="inventory-item">
+                        <div class="inventory-element">${el}</div>
+                        <div class="inventory-details">
+                            <div class="inventory-amount">${amount} kg</div>
+                            <div class="inventory-value">${formatNumber(value)} cr</div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
+            this.listEl.innerHTML = html;
         }
 
-        this.listEl.innerHTML = html;
-    }
-
-    private disableAllButtons(): void {
-        if (this.sellBtnOfficial) this.sellBtnOfficial.disabled = true;
-        if (this.sellBtnBlack) this.sellBtnBlack.disabled = true;
-        if (this.sellBtnDump) this.sellBtnDump.disabled = true;
-    }
-
-    private enableAllButtons(): void {
-        if (this.sellBtnOfficial) this.sellBtnOfficial.disabled = false;
-        if (this.sellBtnBlack) this.sellBtnBlack.disabled = false;
-        if (this.sellBtnDump) this.sellBtnDump.disabled = false;
+        this.updateButtonStates();
     }
 }
