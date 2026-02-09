@@ -3,7 +3,7 @@ import { AsteroidsController } from './controller';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { World } from '../world/interfaces';
-import { CellType, MiningConstraint } from '../world/interfaces';
+import { CellType, MiningConstraint, WorldService } from '../world';
 import { positionKey } from '../world/utils';
 import { SCAN_POWER_COST } from './constants';
 
@@ -264,8 +264,9 @@ describe('AsteroidsController', () => {
             const world = makeWorld([
                 { pos: { x: 0, y: 0, z: 0 }, type: CellType.PowerStation }
             ]);
+            const worldService = new WorldService(world);
             const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 0, y: 0, z: 0 } }));
-            const controller = new AsteroidsController(state$, undefined, world);
+            const controller = new AsteroidsController(state$, undefined, worldService);
 
             const result = controller.scan();
             expect(result.success).toBe(false);
@@ -278,8 +279,9 @@ describe('AsteroidsController', () => {
                 { pos: { x: 0, y: 0, z: 0 }, type: CellType.Market },
                 { pos: { x: 1, y: 0, z: 0 }, type: CellType.Mining, miningConstraint: MiningConstraint.None }
             ]);
+            const worldService = new WorldService(world);
             const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 1, y: 0, z: 0 } }));
-            const controller = new AsteroidsController(state$, undefined, world);
+            const controller = new AsteroidsController(state$, undefined, worldService);
 
             const result = controller.scan();
             expect(result.success).toBe(false);
@@ -291,8 +293,9 @@ describe('AsteroidsController', () => {
             const world = makeWorld([
                 { pos: { x: 10, y: 10, z: 10 }, type: CellType.Mining }
             ]);
+            const worldService = new WorldService(world);
             const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 10, y: 10, z: 10 } }));
-            const controller = new AsteroidsController(state$, undefined, world);
+            const controller = new AsteroidsController(state$, undefined, worldService);
 
             const result = controller.scan();
             expect(result.success).toBe(true);
@@ -303,8 +306,9 @@ describe('AsteroidsController', () => {
             const world = makeWorld([
                 { pos: { x: 5, y: 5, z: 5 }, type: CellType.Market }
             ]);
+            const worldService = new WorldService(world);
             const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 5, y: 5, z: 5 } }));
-            const controller = new AsteroidsController(state$, undefined, world);
+            const controller = new AsteroidsController(state$, undefined, worldService);
 
             expect(controller.canScan()).toBe(false);
         });
@@ -313,8 +317,9 @@ describe('AsteroidsController', () => {
             const world = makeWorld([
                 { pos: { x: 15, y: 15, z: 15 }, type: CellType.Mining }
             ]);
+            const worldService = new WorldService(world);
             const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 15, y: 15, z: 15 } }));
-            const controller = new AsteroidsController(state$, undefined, world);
+            const controller = new AsteroidsController(state$, undefined, worldService);
 
             expect(controller.canScan()).toBe(true);
         });

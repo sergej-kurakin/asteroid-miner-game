@@ -2,8 +2,8 @@
 // Navigation panel for traveling between world cells
 
 import type { Observable, GameState } from '../../gamestate';
-import type { CellPosition, World, Cell } from '../../world';
-import { getCellAt, isInBounds, findMarkets, findPowerStations, euclideanDistance } from '../../world';
+import type { CellPosition, IWorldService, Cell } from '../../world';
+import { euclideanDistance } from '../../world';
 import { CellType, MiningConstraint } from '../../world';
 import { BaseComponent } from '../base-component';
 
@@ -16,7 +16,7 @@ export class NavigationPanel extends BaseComponent {
 
     constructor(
         state$: Observable<GameState>,
-        private readonly world: World,
+        private readonly worldService: IWorldService,
         private readonly onTravel: (dest: CellPosition) => void
     ) {
         super(state$);
@@ -34,7 +34,7 @@ export class NavigationPanel extends BaseComponent {
     }
 
     private findNearestMarket(currentPos: CellPosition): { cell: Cell; distance: number } | null {
-        const markets = findMarkets(this.world);
+        const markets = this.worldService.getMarkets();
         if (markets.length === 0) return null;
 
         let nearest = markets[0];
@@ -52,7 +52,7 @@ export class NavigationPanel extends BaseComponent {
     }
 
     private findNearestPowerStation(currentPos: CellPosition): { cell: Cell; distance: number } | null {
-        const stations = findPowerStations(this.world);
+        const stations = this.worldService.getPowerStations();
         if (stations.length === 0) return null;
 
         let nearest = stations[0];
@@ -70,7 +70,7 @@ export class NavigationPanel extends BaseComponent {
     }
 
     private getLocalAsteroidInfo(currentPos: CellPosition): string {
-        const cell = getCellAt(this.world, currentPos);
+        const cell = this.worldService.getCellAt(currentPos);
         if (!cell) return 'Unknown location';
 
         if (cell.type === CellType.Market || cell.type === CellType.PowerStation) {
@@ -133,7 +133,7 @@ export class NavigationPanel extends BaseComponent {
     }
 
     private isButtonDisabled(state: GameState, dest: CellPosition, cost: number): boolean {
-        return state.is_mining || state.power < cost || !isInBounds(dest);
+        return state.is_mining || state.power < cost || !this.worldService.isInBounds(dest);
     }
 
     render(): void {

@@ -12,9 +12,8 @@ import { MiningController, type IMiningController, type MiningEvent } from './mi
 import { Market, type IMarket, OfficialMarketSystem, BlackMarketSystem, DumpMarketSystem } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
-import { WorldGenerator } from './world';
-import type { World } from './world';
-import type { CellPosition } from './world';
+import { WorldGenerator, WorldService } from './world';
+import type { CellPosition, IWorldService } from './world';
 import {
     type UIComponent,
     formatNumber,
@@ -44,7 +43,7 @@ let powerController: IPowerController;
 let asteroidsController: IAsteroidsController;
 let toolController: IToolController;
 let market: IMarket;
-let world: World;
+let worldService: IWorldService;
 
 // ========================================
 // UI COMPONENTS
@@ -229,7 +228,7 @@ function initComponents(): void {
         asteroidView,
 
         // Complex components
-        new InventoryList(gameState$, CONFIG.elements, world),
+        new InventoryList(gameState$, CONFIG.elements, worldService),
         new ShipInfo(gameState$, shipController, handleShipUpgrade),
         new PowerButton(gameState$, powerController, handleBuyPower),
         new ToolPanel(gameState$, toolController, {
@@ -246,7 +245,7 @@ function initComponents(): void {
         }),
 
         // Navigation
-        new NavigationPanel(gameState$, world, handleTravel)
+        new NavigationPanel(gameState$, worldService, handleTravel)
     ];
 
     // Mount all components
@@ -277,7 +276,8 @@ function initComponents(): void {
 // ========================================
 function init(): void {
     // Generate static world (deterministic, used for navigation)
-    world = new WorldGenerator().generate();
+    const world = new WorldGenerator().generate();
+    worldService = new WorldService(world);
 
     // Load saved game and create observable state
     persistence = createPersistenceController();
@@ -286,7 +286,7 @@ function init(): void {
 
     // Initialize controllers
     shipController = new ShipController(gameState$);
-    powerController = new PowerController(gameState$, world);
+    powerController = new PowerController(gameState$, worldService);
     toolController = new ToolController(gameState$, shipController);
     miningController = new MiningController(gameState$, toolController);
     market = new Market(gameState$, {
@@ -294,7 +294,7 @@ function init(): void {
         black: new BlackMarketSystem(),
         dump: new DumpMarketSystem()
     });
-    asteroidsController = new AsteroidsController(gameState$, undefined, world);
+    asteroidsController = new AsteroidsController(gameState$, undefined, worldService);
 
     // Subscribe to mining events
     miningController.subscribe(handleMiningEvent);
