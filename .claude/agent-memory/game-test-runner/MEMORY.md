@@ -1,29 +1,32 @@
 # Game Test Runner - Agent Memory
 
-## Test Suite Baseline (updated 2026-02-08 final, `another-refatoring` branch)
-- **33 test files**, **431 tests total** (all passing)
+## Test Suite Baseline (updated 2026-02-08 21:15, `world` branch)
+- **35 test files**, **496 tests total** (all passing as of latest run)
 - Typecheck: clean (0 errors)
-- Test run duration: ~3.7s tests, ~5.0s wall clock
+- Test run duration: 7.44s wall clock (9.72s test execution, 2.98s import)
 - Vitest v4.0.18
+- `src/world/generator.test.ts`: 13 tests (was 8, +5 new MiningConstraint/structure tests)
 
-## Current Issues (as of 2026-02-08)
-- None. All typechecks and tests pass. Market refactoring complete with new market systems.
+## Current Issues (as of 2026-02-08 21:15)
+- None — all 496 tests passing
 
-## Test File Inventory (33 files)
+## Test File Inventory (35 files)
 | File | Tests | Status |
 |------|-------|--------|
+| src/world/utils.test.ts | 22 | pass |
+| src/world/generator.test.ts | 13 | pass |
 | src/mining/system.test.ts | 22 | pass |
 | src/mining/commands.test.ts | 20 | pass |
 | src/mining/controller.test.ts | 21 | pass |
 | src/tools/controller.test.ts | 26 | pass |
 | src/tools/commands.test.ts | 13 | pass |
-| src/asteroids/generator.test.ts | 20 | pass |
-| src/asteroids/controller.test.ts | 17 | pass |
-| src/asteroids/commands.test.ts | 9 | pass |
-| src/ships/controller.test.ts | 24 | pass |
-| src/ships/commands.test.ts | 11 | pass |
-| src/power/controller.test.ts | 12 | pass |
-| src/power/commands.test.ts | 8 | pass |
+| src/asteroids/generator.test.ts | 23 | pass |
+| src/asteroids/controller.test.ts | 22 | pass |
+| src/asteroids/commands.test.ts | 11 | pass |
+| src/ships/controller.test.ts | 35 | pass |
+| src/ships/commands.test.ts | 15 | pass |
+| src/power/controller.test.ts | 16 | pass |
+| src/power/commands.test.ts | 9 | pass |
 | src/market/mediator.test.ts | 4 | pass |
 | src/market/commands.test.ts | 6 | pass |
 | src/market/market.test.ts | 8 | pass |
@@ -47,17 +50,12 @@
 | src/ui/components/status-display.test.ts | 6 | pass |
 
 ## Key Observations
-- Market module expanded from 15 to 34 tests with three new market strategy systems:
-  - `OfficialMarketSystem` (5 tests) - premium prices
-  - `BlackMarketSystem` (6 tests) - variable prices with modifiers
-  - `DumpMarketSystem` (5 tests) - bulk liquidation
-  - Commands and mediator tests increased slightly
-- Mining module tests stable (system 22, commands 20, controller 21)
-- Persistence module stabilized (storage, transformer, controller all passing)
+- Market module has three market strategy systems: OfficialMarketSystem, BlackMarketSystem, DumpMarketSystem
 - `Asteroid` interface includes `totalYield`, `miningTime`, `visualDiameter` fields
-- Slowest test files: tool-panel (~590ms), ship-info (~484ms), composition-grid (~500ms)
+- Slowest test files: world/generator (~2014ms), tool-panel (~661ms), ship-info (~551ms)
 - Non-UI tests run fast (<150ms each)
 - `npm run build` runs tests as part of pipeline (clean -> typecheck -> test -> bundle)
+- `src/asteroids/controller.test.ts` grew from 17 to 22 tests (MiningConstraint tests added)
 
 ## Common Failure Patterns
 - **`createInitialState` errors**: New GameState field added but test files not updated
@@ -65,3 +63,5 @@
 - **Asteroid interface changes**: Test mocks need all required Asteroid fields
 - **localStorage in Node**: Tests using localStorage need jsdom env or manual mocks
 - **Type errors after interface changes**: Check `src/gamestate/interfaces.ts` for GameState
+- **Empty weighted items after constraint filter**: `MiningConstraint.SmallOnly` + high ship levels
+  (4-5) that have no tiny/small sizes causes `weightedRandomSelect` to crash on empty array

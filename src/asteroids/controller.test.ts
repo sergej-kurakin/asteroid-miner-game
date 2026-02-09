@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { AsteroidsController } from './controller';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
+import type { World } from '../world/interfaces';
+import { CellType, MiningConstraint } from '../world/interfaces';
+import { positionKey } from '../world/utils';
 import { SCAN_POWER_COST } from './constants';
 
 const createTestState = (overrides?: Partial<GameState>): GameState => ({
@@ -18,6 +21,7 @@ const createTestState = (overrides?: Partial<GameState>): GameState => ({
     power_capacity: 100,
     equipped_tools: [],
     tools_owned: [],
+    current_cell: { x: 0, y: 0, z: 0 },
     ...overrides
 });
 
@@ -244,6 +248,75 @@ describe('AsteroidsController', () => {
             const controller = new AsteroidsController(state$);
 
             expect(controller.canAbandon()).toBe(false);
+        });
+    });
+
+    describe('world constraints', () => {
+        function makeWorld(cells: Array<{ pos: { x: number; y: number; z: number }; type: CellType; miningConstraint?: MiningConstraint }>): World {
+            const world: World = new Map();
+            for (const { pos, type, miningConstraint = MiningConstraint.Any } of cells) {
+                world.set(positionKey(pos), { position: pos, type, miningConstraint });
+            }
+            return world;
+        }
+
+        it('blocks scan when cell is not a Mining cell', () => {
+            const world = makeWorld([
+                { pos: { x: 0, y: 0, z: 0 }, type: CellType.PowerStation }
+            ]);
+            const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 0, y: 0, z: 0 } }));
+            const controller = new AsteroidsController(state$, undefined, world);
+
+            const result = controller.scan();
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('no_mining_zone');
+        });
+
+        it('blocks scan when constraint is None (near market)', () => {
+            // Place a market at (0,0,0) and a mining cell at (1,0,0) within radius 3
+            const world = makeWorld([
+                { pos: { x: 0, y: 0, z: 0 }, type: CellType.Market },
+                { pos: { x: 1, y: 0, z: 0 }, type: CellType.Mining, miningConstraint: MiningConstraint.None }
+            ]);
+            const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 1, y: 0, z: 0 } }));
+            const controller = new AsteroidsController(state$, undefined, world);
+
+            const result = controller.scan();
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('no_mining_zone');
+        });
+
+        it('succeeds scan on Mining cell with Any constraint', () => {
+            // Mining cell far from any market/power station
+            const world = makeWorld([
+                { pos: { x: 10, y: 10, z: 10 }, type: CellType.Mining }
+            ]);
+            const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 10, y: 10, z: 10 } }));
+            const controller = new AsteroidsController(state$, undefined, world);
+
+            const result = controller.scan();
+            expect(result.success).toBe(true);
+            expect(result.asteroid).toBeDefined();
+        });
+
+        it('canScan returns false on non-Mining cell', () => {
+            const world = makeWorld([
+                { pos: { x: 5, y: 5, z: 5 }, type: CellType.Market }
+            ]);
+            const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 5, y: 5, z: 5 } }));
+            const controller = new AsteroidsController(state$, undefined, world);
+
+            expect(controller.canScan()).toBe(false);
+        });
+
+        it('canScan returns true on Mining cell with Any constraint', () => {
+            const world = makeWorld([
+                { pos: { x: 15, y: 15, z: 15 }, type: CellType.Mining }
+            ]);
+            const state$ = new StateObserver(createTestState({ power: 100, current_cell: { x: 15, y: 15, z: 15 } }));
+            const controller = new AsteroidsController(state$, undefined, world);
+
+            expect(controller.canScan()).toBe(true);
         });
     });
 

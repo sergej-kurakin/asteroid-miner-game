@@ -37,6 +37,7 @@ describe('ShipInfo', () => {
         power_capacity: 100,
         equipped_tools: [],
         tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides,
     });
 
@@ -63,6 +64,8 @@ describe('ShipInfo', () => {
             getLevel: vi.fn().mockReturnValue(1),
             getMiningTime: vi.fn().mockReturnValue(3000),
             getToolSlots: vi.fn().mockReturnValue(1),
+            calculateMoveCost: vi.fn().mockReturnValue(20),
+            travel: vi.fn(),
         };
         onUpgrade = vi.fn() as () => void;
         shipInfo = new ShipInfo(state$, mockController, onUpgrade);

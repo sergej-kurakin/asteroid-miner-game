@@ -55,3 +55,7 @@ export const SHIPS: ShipData[] = [
 
 export const INITIAL_SHIP_LEVEL = 1;
 export const MAX_SHIP_LEVEL = 5;
+
+export const BASE_MOVE_COST = 20;
+export const CARGO_COST_STEP = 50;    // every N units of cargo
+export const CARGO_COST_PENALTY = 0.1; // +10% per step

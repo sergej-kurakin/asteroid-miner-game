@@ -19,6 +19,7 @@ function createMockState(overrides: Partial<GameState> = {}): GameState {
         power_capacity: 100,
         equipped_tools: [],
         tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides
     };
 }
@@ -278,6 +279,147 @@ describe('ShipController', () => {
             // Should be capped at new capacity
             expect(stateCall.power).toBe(90);
             expect(stateCall.power_capacity).toBe(SHIPS[1].powerCell);
+        });
+    });
+
+    describe('calculateMoveCost', () => {
+        it('returns base cost when hold is empty', () => {
+            mockObservable = createMockObservable(createMockState({ hold_used: 0 }));
+            controller = new ShipController(mockObservable);
+
+            expect(controller.calculateMoveCost()).toBe(20);
+        });
+
+        it('returns base cost when hold is under first penalty threshold', () => {
+            mockObservable = createMockObservable(createMockState({ hold_used: 49 }));
+            controller = new ShipController(mockObservable);
+
+            expect(controller.calculateMoveCost()).toBe(20);
+        });
+
+        it('adds 10% per 50 units of cargo', () => {
+            // 50 hold_used = 1 step → 20 * 1.1 = 22
+            mockObservable = createMockObservable(createMockState({ hold_used: 50 }));
+            controller = new ShipController(mockObservable);
+
+            expect(controller.calculateMoveCost()).toBe(22);
+        });
+
+        it('ceils fractional result', () => {
+            // 3 steps → 20 * 1.3 = 26 (no fraction here, but test 150 hold_used)
+            // 150 / 50 = 3 steps → 20 * 1.3 = 26
+            mockObservable = createMockObservable(createMockState({ hold_used: 150 }));
+            controller = new ShipController(mockObservable);
+
+            expect(controller.calculateMoveCost()).toBe(26);
+        });
+    });
+
+    describe('travel', () => {
+        it('succeeds and returns new cell for valid adjacent move', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 5, y: 5, z: 5 },
+                power: 100,
+                is_mining: false,
+            }));
+            controller = new ShipController(mockObservable);
+
+            const result = controller.travel({ x: 6, y: 5, z: 5 });
+            expect(result.success).toBe(true);
+            if (result.success) {
+                expect(result.newCell).toEqual({ x: 6, y: 5, z: 5 });
+            }
+        });
+
+        it('updates state on successful travel', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 5, y: 5, z: 5 },
+                power: 100,
+                is_mining: false,
+            }));
+            controller = new ShipController(mockObservable);
+
+            controller.travel({ x: 5, y: 6, z: 5 });
+
+            expect(mockObservable.setState).toHaveBeenCalled();
+            const stateCall = (mockObservable.setState as ReturnType<typeof vi.fn>).mock.calls[0][0];
+            expect(stateCall.current_cell).toEqual({ x: 5, y: 6, z: 5 });
+            expect(stateCall.power).toBe(80); // 100 - 20
+        });
+
+        it('returns is_mining error when mining', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 5, y: 5, z: 5 },
+                power: 100,
+                is_mining: true,
+            }));
+            controller = new ShipController(mockObservable);
+
+            const result = controller.travel({ x: 6, y: 5, z: 5 });
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error).toBe('is_mining');
+            }
+        });
+
+        it('returns insufficient_power error when not enough power', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 5, y: 5, z: 5 },
+                power: 5,
+                is_mining: false,
+            }));
+            controller = new ShipController(mockObservable);
+
+            const result = controller.travel({ x: 6, y: 5, z: 5 });
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error).toBe('insufficient_power');
+            }
+        });
+
+        it('returns invalid_destination for non-adjacent cell', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 5, y: 5, z: 5 },
+                power: 100,
+                is_mining: false,
+            }));
+            controller = new ShipController(mockObservable);
+
+            const result = controller.travel({ x: 7, y: 5, z: 5 });
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error).toBe('invalid_destination');
+            }
+        });
+
+        it('returns invalid_destination for out-of-bounds cell', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 0, y: 0, z: 0 },
+                power: 100,
+                is_mining: false,
+            }));
+            controller = new ShipController(mockObservable);
+
+            const result = controller.travel({ x: -1, y: 0, z: 0 });
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error).toBe('invalid_destination');
+            }
+        });
+
+        it('returns invalid_destination for diagonal move', () => {
+            mockObservable = createMockObservable(createMockState({
+                current_cell: { x: 5, y: 5, z: 5 },
+                power: 100,
+                is_mining: false,
+            }));
+            controller = new ShipController(mockObservable);
+
+            const result = controller.travel({ x: 6, y: 6, z: 5 });
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error).toBe('invalid_destination');
+            }
         });
     });
 });

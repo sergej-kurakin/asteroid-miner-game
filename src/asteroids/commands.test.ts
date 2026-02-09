@@ -3,6 +3,7 @@ import { ScanCommand, AbandonCommand } from './commands';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { Asteroid, IAsteroidGenerator } from './interfaces';
+import { MiningConstraint } from '../world/interfaces';
 import { SCAN_POWER_COST } from './constants';
 import { AsteroidGenerator } from './generator';
 
@@ -20,6 +21,7 @@ const createTestState = (overrides?: Partial<GameState>): GameState => ({
     power_capacity: 100,
     equipped_tools: [],
     tools_owned: [],
+    current_cell: { x: 0, y: 0, z: 0 },
     ...overrides
 });
 
@@ -97,6 +99,38 @@ describe('ScanCommand', () => {
         command.execute();
 
         expect(receivedLevel).toBe(4);
+    });
+
+    it('passes constraint to the generator', () => {
+        let receivedConstraint: MiningConstraint | undefined;
+        const fakeGenerator: IAsteroidGenerator = {
+            generate: (_level: number, constraint?: MiningConstraint) => {
+                receivedConstraint = constraint;
+                return createTestAsteroid();
+            }
+        };
+        const state$ = new StateObserver(createTestState({ power: 100 }));
+        const command = new ScanCommand(state$, fakeGenerator, MiningConstraint.SmallOnly);
+
+        command.execute();
+
+        expect(receivedConstraint).toBe(MiningConstraint.SmallOnly);
+    });
+
+    it('passes undefined constraint when not provided', () => {
+        let receivedConstraint: MiningConstraint | undefined = MiningConstraint.Any;
+        const fakeGenerator: IAsteroidGenerator = {
+            generate: (_level: number, constraint?: MiningConstraint) => {
+                receivedConstraint = constraint;
+                return createTestAsteroid();
+            }
+        };
+        const state$ = new StateObserver(createTestState({ power: 100 }));
+        const command = new ScanCommand(state$, fakeGenerator);
+
+        command.execute();
+
+        expect(receivedConstraint).toBeUndefined();
     });
 
     it('reads power from state at execution time, not construction time', () => {

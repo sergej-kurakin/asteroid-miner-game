@@ -1,19 +1,28 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
-import { POWER_COST } from './constants';
+import type { World } from '../world/interfaces';
+import { nearestPowerStationDistance } from '../world/utils';
+import { POWER_BASE_COST, POWER_DISTANCE_RATE } from './constants';
 import type { IPowerController, BuyPowerResult } from './interfaces';
 import { BuyPowerCommand } from './commands';
 
 export class PowerController implements IPowerController {
     constructor(
         private readonly state$: Observable<GameState>,
+        private readonly world: World,
     ) {}
+
+    getPowerCost(): number {
+        const distance = nearestPowerStationDistance(this.world, this.state$.getState().current_cell);
+        const distanceCost = distance === Infinity ? 0 : distance * POWER_DISTANCE_RATE;
+        return POWER_BASE_COST + distanceCost;
+    }
 
     buyPower(): BuyPowerResult {
         const state = this.state$.getState();
+        const cost = this.getPowerCost();
 
-        // Validation checks
-        if (state.credits < POWER_COST) {
+        if (state.credits < cost) {
             return { success: false, error: 'insufficient_credits' };
         }
 
@@ -21,13 +30,13 @@ export class PowerController implements IPowerController {
             return { success: false, error: 'power_full' };
         }
 
-        const newPower = new BuyPowerCommand(this.state$).execute();
+        const newPower = new BuyPowerCommand(this.state$, cost).execute();
         return { success: true, newPower };
     }
 
     canBuyPower(): boolean {
         const state = this.state$.getState();
-        return state.credits >= POWER_COST && state.power < state.power_capacity;
+        return state.credits >= this.getPowerCost() && state.power < state.power_capacity;
     }
 
     getCurrentPower(): number {

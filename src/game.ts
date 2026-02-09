@@ -12,6 +12,9 @@ import { MiningController, type IMiningController, type MiningEvent } from './mi
 import { Market, type IMarket, OfficialMarketSystem, BlackMarketSystem, DumpMarketSystem } from './market';
 import { PowerController, type IPowerController } from './power';
 import { ToolController, type IToolController } from './tools';
+import { WorldGenerator } from './world';
+import type { World } from './world';
+import type { CellPosition } from './world';
 import {
     type UIComponent,
     formatNumber,
@@ -25,7 +28,8 @@ import {
     DiscoveryAlert,
     ControlButtons,
     AsteroidView,
-    ToolPanel
+    ToolPanel,
+    NavigationPanel
 } from './ui';
 
 // ========================================
@@ -40,6 +44,7 @@ let powerController: IPowerController;
 let asteroidsController: IAsteroidsController;
 let toolController: IToolController;
 let market: IMarket;
+let world: World;
 
 // ========================================
 // UI COMPONENTS
@@ -58,6 +63,21 @@ function handleShipUpgrade(): void {
     if (result.success) {
         statusDisplay.setMessage(`Upgraded to ${result.newShip.name}!`);
         persistence.save(gameState$.getState());
+    }
+}
+
+// ========================================
+// TRAVEL HELPER FUNCTIONS
+// ========================================
+function handleTravel(dest: CellPosition): void {
+    const result = shipController.travel(dest);
+    if (result.success) {
+        statusDisplay.setMessage(`Traveled to (${dest.x}, ${dest.y}, ${dest.z})`);
+        persistence.save(gameState$.getState());
+    } else if (result.error === 'insufficient_power') {
+        statusDisplay.setMessage('Insufficient Power');
+    } else if (result.error === 'is_mining') {
+        statusDisplay.setMessage('Cannot travel while mining');
     }
 }
 
@@ -113,7 +133,6 @@ function abandonAsteroid(): void {
     const result = asteroidsController.abandon();
 
     if (result.success) {
-        asteroidView.hideAsteroid();
         statusDisplay.setMessage('Asteroid Abandoned');
     }
 }
@@ -122,7 +141,6 @@ function scanAsteroid(): void {
     const result = asteroidsController.scan();
 
     if (result.success) {
-        asteroidView.showAsteroid();
         statusDisplay.setMessage('Asteroid Locked');
         persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_power') {
@@ -136,12 +154,11 @@ function scanAsteroid(): void {
 function handleMiningEvent(event: MiningEvent): void {
     switch (event.type) {
         case 'mining_started':
-            asteroidView.setMining(true);
             statusDisplay.setMessage('Mining in Progress...');
             break;
 
         case 'mining_progress':
-            asteroidView.setProgress(event.progress);
+            // Progress tracking removed - mining happens automatically
             break;
 
         case 'discovery':
@@ -149,7 +166,6 @@ function handleMiningEvent(event: MiningEvent): void {
             break;
 
         case 'mining_completed':
-            asteroidView.hideAsteroid();
             statusDisplay.setMessage('Mining Complete');
             persistence.save(gameState$.getState());
             break;
@@ -213,7 +229,7 @@ function initComponents(): void {
         asteroidView,
 
         // Complex components
-        new InventoryList(gameState$, CONFIG.elements),
+        new InventoryList(gameState$, CONFIG.elements, world),
         new ShipInfo(gameState$, shipController, handleShipUpgrade),
         new PowerButton(gameState$, powerController, handleBuyPower),
         new ToolPanel(gameState$, toolController, {
@@ -227,7 +243,10 @@ function initComponents(): void {
             onScan: scanAsteroid,
             onMine: handleStartMining,
             onAbandon: abandonAsteroid
-        })
+        }),
+
+        // Navigation
+        new NavigationPanel(gameState$, world, handleTravel)
     ];
 
     // Mount all components
@@ -257,6 +276,9 @@ function initComponents(): void {
 // INITIALIZATION
 // ========================================
 function init(): void {
+    // Generate static world (deterministic, used for navigation)
+    world = new WorldGenerator().generate();
+
     // Load saved game and create observable state
     persistence = createPersistenceController();
     const initialState = persistence.load();
@@ -264,7 +286,7 @@ function init(): void {
 
     // Initialize controllers
     shipController = new ShipController(gameState$);
-    powerController = new PowerController(gameState$);
+    powerController = new PowerController(gameState$, world);
     toolController = new ToolController(gameState$, shipController);
     miningController = new MiningController(gameState$, toolController);
     market = new Market(gameState$, {
@@ -272,7 +294,7 @@ function init(): void {
         black: new BlackMarketSystem(),
         dump: new DumpMarketSystem()
     });
-    asteroidsController = new AsteroidsController(gameState$);
+    asteroidsController = new AsteroidsController(gameState$, undefined, world);
 
     // Subscribe to mining events
     miningController.subscribe(handleMiningEvent);

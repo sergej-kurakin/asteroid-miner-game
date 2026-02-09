@@ -25,6 +25,7 @@ describe('PowerButton', () => {
         power_capacity: 100,
         equipped_tools: [],
         tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides,
     });
 
@@ -44,6 +45,7 @@ describe('PowerButton', () => {
             canBuyPower: vi.fn().mockReturnValue(true),
             getCurrentPower: vi.fn().mockReturnValue(50),
             getMaxPower: vi.fn().mockReturnValue(100),
+            getPowerCost: vi.fn().mockReturnValue(100),
         };
         onBuyPower = vi.fn() as () => void;
         button = new PowerButton(state$, mockController, onBuyPower);

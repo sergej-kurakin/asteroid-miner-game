@@ -23,6 +23,7 @@ describe('ToolController', () => {
         power_capacity: 100,
         equipped_tools: [],
         tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides
     });
 
@@ -34,7 +35,9 @@ describe('ToolController', () => {
         upgrade: vi.fn(),
         getLevel: vi.fn().mockReturnValue(2),
         getMiningTime: vi.fn().mockReturnValue(2500),
-        getToolSlots: vi.fn().mockReturnValue(toolSlots)
+        getToolSlots: vi.fn().mockReturnValue(toolSlots),
+        calculateMoveCost: vi.fn().mockReturnValue(20),
+        travel: vi.fn()
     });
 
     beforeEach(() => {

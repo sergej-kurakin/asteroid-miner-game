@@ -1,3 +1,5 @@
+import type { MiningConstraint } from '../world/interfaces';
+
 // Asteroid size types
 export type AsteroidSize = 'tiny' | 'small' | 'medium' | 'large' | 'massive' | 'colossal';
 
@@ -58,7 +60,7 @@ export interface Asteroid {
 export interface ScanResult {
     success: boolean;
     asteroid?: Asteroid;
-    error?: 'is_mining' | 'asteroid_exists' | 'insufficient_power';
+    error?: 'is_mining' | 'asteroid_exists' | 'insufficient_power' | 'no_mining_zone';
 }
 
 // Result of abandoning an asteroid
@@ -84,5 +86,5 @@ export interface RandomProvider {
 
 // Asteroid generator interface
 export interface IAsteroidGenerator {
-    generate(shipLevel: number): Asteroid;
+    generate(shipLevel: number, constraint?: MiningConstraint): Asteroid;
 }

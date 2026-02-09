@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { UpgradeShipCommand } from './commands';
+import { UpgradeShipCommand, TravelCommand } from './commands';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { ShipData } from './interfaces';
@@ -18,6 +18,7 @@ const createTestState = (overrides?: Partial<GameState>): GameState => ({
     power_capacity: 100,
     equipped_tools: [],
     tools_owned: [],
+    current_cell: { x: 0, y: 0, z: 0 },
     ...overrides
 });
 
@@ -118,7 +119,8 @@ describe('UpgradeShipCommand', () => {
             is_mining: false,
             asteroid: null,
             discovered_elements: ['Fe', 'Si'],
-            tools_owned: ['laser_drill']
+            tools_owned: ['laser_drill'],
+            current_cell: { x: 0, y: 0, z: 0 },
         }));
         new UpgradeShipCommand(state$, nextShip).execute();
 
@@ -136,5 +138,45 @@ describe('UpgradeShipCommand', () => {
 
         expect(state$.getState().hold_used).toBe(0);
         expect(Number.isNaN(state$.getState().hold_used)).toBe(false);
+    });
+});
+
+describe('TravelCommand', () => {
+    it('updates current_cell to destination', () => {
+        const dest = { x: 1, y: 0, z: 0 };
+        const state$ = new StateObserver(createTestState({ current_cell: { x: 0, y: 0, z: 0 }, power: 50 }));
+        new TravelCommand(state$, dest, 20).execute();
+
+        expect(state$.getState().current_cell).toEqual(dest);
+    });
+
+    it('deducts move cost from power', () => {
+        const state$ = new StateObserver(createTestState({ power: 80 }));
+        new TravelCommand(state$, { x: 1, y: 0, z: 0 }, 25).execute();
+
+        expect(state$.getState().power).toBe(55);
+    });
+
+    it('clears asteroid and resets mining state', () => {
+        const state$ = new StateObserver(createTestState({
+            power: 80,
+            asteroid: { type: 'iron_nickel', size: 'small', composition: {}, totalYield: 10, miningTime: 3000, visualDiameter: 40 },
+            is_mining: true,
+            mining_progress: 0.5,
+        }));
+        new TravelCommand(state$, { x: 1, y: 0, z: 0 }, 20).execute();
+
+        const state = state$.getState();
+        expect(state.asteroid).toBeNull();
+        expect(state.is_mining).toBe(false);
+        expect(state.mining_progress).toBe(0);
+    });
+
+    it('does not modify unrelated state', () => {
+        const state$ = new StateObserver(createTestState({ credits: 5000, hold_used: 30 }));
+        new TravelCommand(state$, { x: 0, y: 1, z: 0 }, 20).execute();
+
+        expect(state$.getState().credits).toBe(5000);
+        expect(state$.getState().hold_used).toBe(30);
     });
 });

@@ -13,7 +13,8 @@ export function toSaveData(state: Readonly<GameState>): SaveData {
         power: state.power,
         power_capacity: state.power_capacity,
         equipped_tools: state.equipped_tools,
-        tools_owned: state.tools_owned
+        tools_owned: state.tools_owned,
+        current_cell: state.current_cell
     };
 }
 
@@ -29,6 +30,7 @@ export function toGameState(data: Partial<SaveData>): GameState {
         power_capacity: data.power_capacity ?? DEFAULT_SAVE_DATA.power_capacity,
         equipped_tools: data.equipped_tools ?? DEFAULT_SAVE_DATA.equipped_tools,
         tools_owned: data.tools_owned ?? DEFAULT_SAVE_DATA.tools_owned,
+        current_cell: data.current_cell ?? DEFAULT_SAVE_DATA.current_cell,
         asteroid: null,
         is_mining: false,
         mining_progress: 0

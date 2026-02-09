@@ -280,111 +280,73 @@ body::before {
     flex-direction: column;
 }
 
-.asteroid-view {
+/* Two equal halves split by a horizontal divider.
+   Each is a distinct sub-panel with its own rounded corners. */
+.center-panel__half {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    min-height: 250px;
+    overflow: hidden;
+    /* Sub-panel background matches outer panel; visible against the divider */
+    background: var(--panel-bg);
 }
 
-.asteroid {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #666, #333 50%, #1a1a1a);
-    box-shadow:
-        inset -15px -15px 30px rgba(0,0,0,0.8),
-        inset 5px 5px 15px rgba(255,255,255,0.1),
-        0 0 30px rgba(100, 100, 100, 0.3);
-    display: none;
-    position: relative;
+/* Top half: round the bottom corners only */
+.center-panel__half--top {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
 
-.asteroid.visible {
-    display: block;
-    animation: float 4s ease-in-out infinite;
+/* Bottom half: round the top corners only */
+.center-panel__half--bottom {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
 }
 
-.asteroid.mining {
-    animation: float 4s ease-in-out infinite, pulse-mining 0.5s ease-in-out infinite;
+/* Give the bottom-half title breathing room after the divider line */
+.center-panel__half--bottom > .panel-title {
+    margin-top: 15px;
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+/* Solid green divider line matching the panel border color */
+.center-panel__divider {
+    flex-shrink: 0;
+    height: 2px;
+    background: var(--primary);
+    /* Subtle phosphor glow matching the panel border-glow style */
+    box-shadow: 0 0 6px var(--primary), 0 0 12px rgba(0, 255, 136, 0.3);
+    margin: 0 -20px; /* extend edge-to-edge across panel padding */
 }
 
-@keyframes pulse-mining {
-    0%, 100% { box-shadow: inset -15px -15px 30px rgba(0,0,0,0.8), inset 5px 5px 15px rgba(255,255,255,0.1), 0 0 30px rgba(255, 136, 0, 0.3); }
-    50% { box-shadow: inset -15px -15px 30px rgba(0,0,0,0.8), inset 5px 5px 15px rgba(255,255,255,0.1), 0 0 50px rgba(255, 136, 0, 0.6); }
-}
-
+/* Placeholder displayed when no asteroid is scanned */
 .asteroid-placeholder {
     color: rgba(0, 255, 136, 0.3);
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-align: center;
+    padding: 40px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.mining-progress-container {
-    width: 80%;
-    margin-top: 30px;
-    display: none;
-}
-
-.mining-progress-container.visible {
-    display: block;
-}
-
-.mining-progress-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--accent);
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.mining-progress {
-    height: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.mining-progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), #ffaa44);
-    transition: width 0.05s linear;
-    box-shadow: 0 0 10px var(--accent);
-}
-
+/* Composition section containing the grid of asteroid data */
 .composition-section {
-    border-top: 1px solid rgba(0, 255, 136, 0.3);
-    padding-top: 20px;
-    margin-top: 20px;
-}
-
-.composition-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
-    text-align: center;
-    color: var(--secondary);
+    flex: 1;
+    display: none; /* Hidden by default, shown when asteroid is present */
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 10px 0;
 }
 
 .composition-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+    padding: 0 5px;
 }
 
 .composition-item {
@@ -854,6 +816,134 @@ body::before {
     opacity: 0.7;
 }
 
+.navigation-section {
+    /* margin-top removed — navigation-section now lives in its own half container */
+    padding: 10px;
+    border: 1px solid rgba(0, 153, 255, 0.3);
+    border-radius: 4px;
+    background: rgba(0, 153, 255, 0.04);
+}
+
+.navigation-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--secondary);
+    margin-bottom: 8px;
+}
+
+.nav-position {
+    font-size: 11px;
+    color: var(--secondary);
+    margin-bottom: 4px;
+}
+
+.nav-cell-type {
+    color: var(--gold);
+    font-size: 10px;
+}
+
+.nav-cost {
+    font-size: 10px;
+    color: rgba(0, 153, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.nav-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+
+.btn-nav {
+    font-size: 10px;
+    padding: 4px 6px;
+    color: var(--secondary);
+    border-color: rgba(0, 153, 255, 0.4);
+    background: rgba(0, 153, 255, 0.08);
+}
+
+.btn-nav:not(:disabled):hover {
+    background: rgba(0, 153, 255, 0.2);
+    box-shadow: 0 0 8px rgba(0, 153, 255, 0.3);
+}
+
+/* Navigation sections */
+.nav-section {
+    margin-bottom: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 4px;
+}
+
+.nav-section--world {
+    border-color: rgba(0, 153, 255, 0.3);
+}
+
+.nav-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--secondary);
+    margin-bottom: 6px;
+    opacity: 0.7;
+}
+
+.nav-info-line {
+    font-size: 10px;
+    color: var(--primary);
+    margin: 4px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* At location indicator in navigation panel */
+.at-location {
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Navigation controls grid layout */
+.nav-controls-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: repeat(3, auto);
+    gap: 4px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.nav-coord-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--secondary);
+}
+
+.nav-coord-label {
+    opacity: 0.6;
+}
+
+.nav-coord-value {
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Navigation button variants */
+.btn-nav--minus {
+    justify-self: end;
+}
+
+.btn-nav--plus {
+    justify-self: start;
+}
+
 .btn-sell {
     margin-top: 15px;
     color: var(--primary);
@@ -864,4 +954,14 @@ body::before {
 .btn-sell:not(:disabled):hover {
     background: rgba(0, 255, 136, 0.25);
     box-shadow: 0 0 20px var(--primary);
+}
+
+/* Sell button states */
+.btn-sell--not-at-market {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-sell--empty {
+    opacity: 0.3;
 }

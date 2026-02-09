@@ -21,6 +21,7 @@ describe('PersistenceController', () => {
         power_capacity: 120,
         equipped_tools: [],
         tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides
     });
 
@@ -58,7 +59,8 @@ describe('PersistenceController', () => {
                 power: 90,
                 power_capacity: 150,
                 equipped_tools: [{ toolId: 'laser_mk2', slot: 0 }],
-                tools_owned: ['laser_mk2']
+                tools_owned: ['laser_mk2'],
+                current_cell: { x: 0, y: 0, z: 0 },
             } satisfies SaveData);
 
             const state = controller.load();

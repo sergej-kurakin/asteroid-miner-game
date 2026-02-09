@@ -17,7 +17,8 @@ describe('LocalStorageAdapter', () => {
         power: 80,
         power_capacity: 120,
         equipped_tools: [],
-        tools_owned: []
+        tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
     };
 
     beforeEach(() => {

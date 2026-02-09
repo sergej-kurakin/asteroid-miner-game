@@ -7,4 +7,5 @@ export interface IPowerController {
     canBuyPower(): boolean;
     getCurrentPower(): number;
     getMaxPower(): number;
+    getPowerCost(): number;
 }

@@ -1,5 +1,6 @@
 import type { Observable, Command, GameState } from '../gamestate';
 import type { ShipData } from './interfaces';
+import type { CellPosition } from '../world/interfaces';
 
 /**
  * Upgrades the ship to the next tier, adjusting hold/power proportionally.
@@ -38,5 +39,31 @@ export class UpgradeShipCommand implements Command<ShipData> {
         });
 
         return this.nextShip;
+    }
+}
+
+/**
+ * Moves the ship to an adjacent cell, deducting power and clearing asteroid state.
+ *
+ * @precondition !state.is_mining
+ * @precondition destination is adjacent (Manhattan distance = 1) and in bounds
+ * @precondition state.power >= moveCost
+ */
+export class TravelCommand implements Command<void> {
+    constructor(
+        private readonly state$: Observable<GameState>,
+        private readonly destination: CellPosition,
+        private readonly moveCost: number
+    ) {}
+
+    execute(): void {
+        const state = this.state$.getState();
+        this.state$.setState({
+            current_cell: this.destination,
+            power: state.power - this.moveCost,
+            asteroid: null,
+            is_mining: false,
+            mining_progress: 0,
+        });
     }
 }

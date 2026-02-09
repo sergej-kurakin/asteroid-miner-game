@@ -30,6 +30,7 @@ describe('MiningController', () => {
         power_capacity: 100,
         equipped_tools: [],
         tools_owned: [],
+        current_cell: { x: 0, y: 0, z: 0 },
         ...overrides
     });
 

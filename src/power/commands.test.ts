@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { BuyPowerCommand } from './commands';
 import { StateObserver } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
-import { POWER_COST, POWER_GAIN } from './constants';
+import { POWER_GAIN } from './constants';
+
+const FIXED_COST = 100;
 
 const createTestState = (overrides?: Partial<GameState>): GameState => ({
     credits: 1000,
@@ -18,61 +20,62 @@ const createTestState = (overrides?: Partial<GameState>): GameState => ({
     power_capacity: 100,
     equipped_tools: [],
     tools_owned: [],
+    current_cell: { x: 0, y: 0, z: 0 },
     ...overrides
 });
 
 describe('BuyPowerCommand', () => {
-    it('deducts POWER_COST from credits', () => {
+    it('deducts cost from credits', () => {
         const state$ = new StateObserver(createTestState({ credits: 500 }));
-        new BuyPowerCommand(state$).execute();
+        new BuyPowerCommand(state$, FIXED_COST).execute();
 
-        expect(state$.getState().credits).toBe(500 - POWER_COST);
+        expect(state$.getState().credits).toBe(500 - FIXED_COST);
     });
 
     it('increases power by POWER_GAIN', () => {
         const state$ = new StateObserver(createTestState({ power: 20, power_capacity: 100 }));
-        new BuyPowerCommand(state$).execute();
+        new BuyPowerCommand(state$, FIXED_COST).execute();
 
         expect(state$.getState().power).toBe(20 + POWER_GAIN);
     });
 
     it('caps power at power_capacity', () => {
         const state$ = new StateObserver(createTestState({ power: 90, power_capacity: 100 }));
-        new BuyPowerCommand(state$).execute();
+        new BuyPowerCommand(state$, FIXED_COST).execute();
 
         expect(state$.getState().power).toBe(100);
     });
 
     it('returns the new power value', () => {
         const state$ = new StateObserver(createTestState({ power: 30, power_capacity: 100 }));
-        const result = new BuyPowerCommand(state$).execute();
+        const result = new BuyPowerCommand(state$, FIXED_COST).execute();
 
         expect(result).toBe(30 + POWER_GAIN);
     });
 
     it('returns capped power when near capacity', () => {
         const state$ = new StateObserver(createTestState({ power: 80, power_capacity: 100 }));
-        const result = new BuyPowerCommand(state$).execute();
+        const result = new BuyPowerCommand(state$, FIXED_COST).execute();
 
         expect(result).toBe(100);
     });
 
     it('reads state at execute time, not construction time', () => {
         const state$ = new StateObserver(createTestState({ credits: 500, power: 20, power_capacity: 100 }));
-        const command = new BuyPowerCommand(state$);
+        const command = new BuyPowerCommand(state$, FIXED_COST);
 
         state$.setState({ credits: 300, power: 40 });
         command.execute();
 
-        expect(state$.getState().credits).toBe(300 - POWER_COST);
+        expect(state$.getState().credits).toBe(300 - FIXED_COST);
         expect(state$.getState().power).toBe(40 + POWER_GAIN);
     });
 
-    it('deducts POWER_COST even when credits are insufficient (caller must validate)', () => {
+    it('deducts cost even when credits are insufficient (caller must validate)', () => {
         const state$ = new StateObserver(createTestState({ credits: 30 }));
-        new BuyPowerCommand(state$).execute();
+        new BuyPowerCommand(state$, FIXED_COST).execute();
 
-        expect(state$.getState().credits).toBe(30 - POWER_COST);
+        expect(state$.getState().credits).toBe(30 - FIXED_COST);
     });
 
     it('does not modify unrelated state properties', () => {
@@ -84,11 +87,18 @@ describe('BuyPowerCommand', () => {
             is_mining: false,
             current_ship_level: 3
         }));
-        new BuyPowerCommand(state$).execute();
+        new BuyPowerCommand(state$, FIXED_COST).execute();
 
         const state = state$.getState();
         expect(state.hold_used).toBe(50);
         expect(state.is_mining).toBe(false);
         expect(state.current_ship_level).toBe(3);
+    });
+
+    it('deducts the provided cost, not a hardcoded value', () => {
+        const state$ = new StateObserver(createTestState({ credits: 500 }));
+        new BuyPowerCommand(state$, 250).execute();
+
+        expect(state$.getState().credits).toBe(250);
     });
 });

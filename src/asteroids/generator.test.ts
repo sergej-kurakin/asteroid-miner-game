@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { AsteroidGenerator } from './generator';
 import type { RandomProvider, WeightedItem } from './interfaces';
 import { ASTEROID_SIZES, ASTEROID_TYPES, SHIP_SPAWN_CONFIG } from './constants';
+import { MiningConstraint } from '../world/interfaces';
 
 /**
  * Create a mock random provider with deterministic behavior
@@ -243,6 +244,34 @@ describe('AsteroidGenerator', () => {
                 expect(asteroid.totalYield).toBeGreaterThanOrEqual(minYield);
                 expect(asteroid.totalYield).toBeLessThanOrEqual(maxYield);
             }
+        });
+    });
+
+    describe('MiningConstraint', () => {
+        it('SmallOnly constraint always produces tiny or small asteroids', () => {
+            // Use ship level 3 which has tiny/small/medium available
+            for (let i = 0; i < 5; i++) {
+                const mockRandom = createMockRandom({ weightedSelectIndex: i });
+                const generator = new AsteroidGenerator(mockRandom);
+                const asteroid = generator.generate(3, MiningConstraint.SmallOnly);
+                expect(['tiny', 'small']).toContain(asteroid.size);
+            }
+        });
+
+        it('Any constraint does not restrict sizes', () => {
+            // With weightedSelectIndex: 0, level 5 normally gives 'medium' (first in level 5 sizes)
+            const mockRandom = createMockRandom({ weightedSelectIndex: 0 });
+            const generator = new AsteroidGenerator(mockRandom);
+            const asteroid = generator.generate(5, MiningConstraint.Any);
+            // Level 5 first size is 'medium'
+            expect(asteroid.size).toBe('medium');
+        });
+
+        it('no constraint does not restrict sizes', () => {
+            const mockRandom = createMockRandom({ weightedSelectIndex: 0 });
+            const generator = new AsteroidGenerator(mockRandom);
+            const asteroid = generator.generate(5);
+            expect(asteroid.size).toBe('medium');
         });
     });
 
