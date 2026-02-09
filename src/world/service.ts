@@ -1,4 +1,4 @@
-import type { Cell, CellPosition, World, MiningConstraint } from './interfaces';
+import type { Cell, CellPosition, World, MiningConstraint, IWorldService } from './interfaces';
 import {
     getCellAt,
     isInBounds,
@@ -26,7 +26,7 @@ import {
  * - Hides implementation details (Map structure, key format)
  * - Easier to mock in tests
  */
-export class WorldService {
+export class WorldService implements IWorldService {
     private readonly world: World;
 
     // Cached lookups for performance (world is static after generation)
