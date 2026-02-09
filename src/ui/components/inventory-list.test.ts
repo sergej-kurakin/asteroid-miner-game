@@ -4,7 +4,7 @@ import { InventoryList } from './inventory-list';
 import { StateObserver } from '../../gamestate/observer';
 import type { GameState } from '../../gamestate';
 import type { World } from '../../world';
-import { CellType, MiningConstraint } from '../../world';
+import { CellType, MiningConstraint, WorldService } from '../../world';
 
 describe('InventoryList', () => {
     let state$: StateObserver<GameState>;
@@ -60,7 +60,8 @@ describe('InventoryList', () => {
 
         setupDOM();
         state$ = new StateObserver<GameState>(createInitialState());
-        list = new InventoryList(state$, mockElements, mockWorld);
+        const worldService = new WorldService(mockWorld);
+        list = new InventoryList(state$, mockElements, worldService);
     });
 
     afterEach(() => {
@@ -220,7 +221,8 @@ describe('InventoryList', () => {
     describe('handles missing DOM elements gracefully', () => {
         it('does not throw when DOM elements are missing', () => {
             document.body.innerHTML = '';
-            const listWithoutDOM = new InventoryList(state$, mockElements, mockWorld);
+            const worldService = new WorldService(mockWorld);
+            const listWithoutDOM = new InventoryList(state$, mockElements, worldService);
 
             expect(() => {
                 listWithoutDOM.mount();

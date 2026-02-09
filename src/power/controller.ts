@@ -1,7 +1,6 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
-import type { World } from '../world/interfaces';
-import { nearestPowerStationDistance } from '../world/utils';
+import type { IWorldService } from '../world/interfaces';
 import { POWER_BASE_COST, POWER_DISTANCE_RATE } from './constants';
 import type { IPowerController, BuyPowerResult } from './interfaces';
 import { BuyPowerCommand } from './commands';
@@ -9,11 +8,11 @@ import { BuyPowerCommand } from './commands';
 export class PowerController implements IPowerController {
     constructor(
         private readonly state$: Observable<GameState>,
-        private readonly world: World,
+        private readonly worldService: IWorldService,
     ) {}
 
     getPowerCost(): number {
-        const distance = nearestPowerStationDistance(this.world, this.state$.getState().current_cell);
+        const distance = this.worldService.nearestPowerStationDistance(this.state$.getState().current_cell);
         const distanceCost = distance === Infinity ? 0 : distance * POWER_DISTANCE_RATE;
         return POWER_BASE_COST + distanceCost;
     }

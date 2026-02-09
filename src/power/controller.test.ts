@@ -3,7 +3,7 @@ import { PowerController } from './controller';
 import { StateObserver } from '../gamestate/observer';
 import type { GameState } from '../gamestate/interfaces';
 import type { World } from '../world/interfaces';
-import { CellType, MiningConstraint } from '../world/interfaces';
+import { CellType, MiningConstraint, WorldService } from '../world';
 import { POWER_BASE_COST, POWER_DISTANCE_RATE, POWER_GAIN } from './constants';
 
 function makeWorld(powerStationAt?: { x: number; y: number; z: number }): World {
@@ -41,7 +41,8 @@ describe('PowerController', () => {
             current_cell: { x: 0, y: 0, z: 0 },
         });
         // Power station at Manhattan distance 2 from origin → cost = 100 + 2*10 = 120
-        powerController = new PowerController(gameState$, makeWorld({ x: 2, y: 0, z: 0 }));
+        const world = makeWorld({ x: 2, y: 0, z: 0 });
+        powerController = new PowerController(gameState$, new WorldService(world));
     });
 
     describe('getPowerCost', () => {
@@ -50,13 +51,15 @@ describe('PowerController', () => {
         });
 
         it('returns base cost only when no power stations exist', () => {
-            const ctrl = new PowerController(gameState$, makeWorld());
+            const world = makeWorld();
+            const ctrl = new PowerController(gameState$, new WorldService(world));
             expect(ctrl.getPowerCost()).toBe(POWER_BASE_COST);
         });
 
         it('returns base cost when standing on a power station', () => {
             gameState$.updateProperty('current_cell', { x: 0, y: 0, z: 0 });
-            const ctrl = new PowerController(gameState$, makeWorld({ x: 0, y: 0, z: 0 }));
+            const world = makeWorld({ x: 0, y: 0, z: 0 });
+            const ctrl = new PowerController(gameState$, new WorldService(world));
             expect(ctrl.getPowerCost()).toBe(POWER_BASE_COST);
         });
 

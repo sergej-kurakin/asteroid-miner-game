@@ -1,9 +1,8 @@
 import type { Observable } from '../gamestate';
 import type { GameState } from '../gamestate/interfaces';
 import type { Asteroid, IAsteroidsController, IAsteroidGenerator, ScanResult, AbandonResult } from './interfaces';
-import type { World } from '../world/interfaces';
+import type { IWorldService } from '../world/interfaces';
 import { CellType, MiningConstraint } from '../world/interfaces';
-import { getCellAt } from '../world/utils';
 import { SCAN_POWER_COST } from './constants';
 import { ScanCommand, AbandonCommand } from './commands';
 import { AsteroidGenerator } from './generator';
@@ -14,7 +13,7 @@ export class AsteroidsController implements IAsteroidsController {
     constructor(
         private readonly state$: Observable<GameState>,
         generator?: IAsteroidGenerator,
-        private readonly world?: World
+        private readonly worldService?: IWorldService
     ) {
         this.generator = generator ?? new AsteroidGenerator();
     }
@@ -32,8 +31,8 @@ export class AsteroidsController implements IAsteroidsController {
             return { success: false, error: 'insufficient_power' };
         }
 
-        if (this.world) {
-            const cell = getCellAt(this.world, state.current_cell);
+        if (this.worldService) {
+            const cell = this.worldService.getCellAt(state.current_cell);
             if (!cell || cell.type !== CellType.Mining) {
                 return { success: false, error: 'no_mining_zone' };
             }
@@ -70,8 +69,8 @@ export class AsteroidsController implements IAsteroidsController {
         if (state.is_mining || state.asteroid !== null || state.power < SCAN_POWER_COST) {
             return false;
         }
-        if (this.world) {
-            const cell = getCellAt(this.world, state.current_cell);
+        if (this.worldService) {
+            const cell = this.worldService.getCellAt(state.current_cell);
             if (!cell || cell.type !== CellType.Mining) return false;
             if (cell.miningConstraint === MiningConstraint.None) return false;
         }

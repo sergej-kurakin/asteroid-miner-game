@@ -2,8 +2,8 @@
 // Inventory list component with sell button state management
 
 import type { Observable, GameState } from '../../gamestate';
-import type { World } from '../../world';
-import { getCellAt, CellType } from '../../world';
+import type { IWorldService } from '../../world';
+import { CellType } from '../../world';
 import { BaseComponent } from '../base-component';
 import { formatNumber } from '../utils';
 
@@ -22,7 +22,7 @@ export class InventoryList extends BaseComponent {
     constructor(
         state$: Observable<GameState>,
         elements: { [symbol: string]: ElementConfig },
-        private readonly world: World
+        private readonly worldService: IWorldService
     ) {
         super(state$);
         this.elements = elements;
@@ -39,7 +39,7 @@ export class InventoryList extends BaseComponent {
 
     private isAtMarket(): boolean {
         const state = this.state$.getState();
-        const cell = getCellAt(this.world, state.current_cell);
+        const cell = this.worldService.getCellAt(state.current_cell);
         return cell?.type === CellType.Market;
     }
 
