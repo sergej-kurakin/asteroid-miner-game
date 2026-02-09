@@ -21,7 +21,7 @@ Files: game.html, game.css (plain CSS, no SCSS in use — uses CSS custom proper
 ## Center Panel Layout Pattern (as of split implementation)
 - `.center-panel__half` — `flex: 1` so both halves share equal vertical space
 - `.center-panel__divider` — 2px solid var(--primary) bar, `margin: 0 -20px` to span full panel width through padding, phosphor glow via box-shadow
-- `.asteroid-view` uses `min-height: 0` (not 250px) inside the half to allow proper flex shrinking
+- Asteroid analysis section uses unified display (not split view/composition)
 - See: [patterns.md](patterns.md) for divider details
 
 ## Typography
@@ -34,3 +34,16 @@ Files: game.html, game.css (plain CSS, no SCSS in use — uses CSS custom proper
 - Glow on active elements: `text-shadow: 0 0 10px var(--primary)` or `box-shadow` with color vars
 - Gauge fills use `transition: width 0.3s ease`
 - Mining pulse: CSS @keyframes animation toggled by `.mining` class on `.asteroid`
+
+## UI Component Pattern
+- Components extend `BaseComponent` from `src/ui/base-component.ts`
+- Visibility toggling: When toggling between placeholder and content, use `display: flex/none` pairs
+- The asteroid analysis section uses:
+  - `#asteroid-placeholder` — shown with `display: flex` when no asteroid
+  - `#composition-section` — shown with `display: flex` when asteroid exists
+  - Both toggled by `AsteroidView` component watching `asteroid` state property
+
+## Testing Components
+- UI component tests use `@vitest-environment jsdom` directive
+- When updating visibility logic, update corresponding test expectations
+- Test files verify DOM element references and state-driven display changes

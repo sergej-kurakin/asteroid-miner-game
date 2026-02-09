@@ -869,6 +869,73 @@ body::before {
     box-shadow: 0 0 8px rgba(0, 153, 255, 0.3);
 }
 
+/* Navigation sections */
+.nav-section {
+    margin-bottom: 10px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 4px;
+}
+
+.nav-section--world {
+    border-color: rgba(0, 153, 255, 0.3);
+}
+
+.nav-section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--secondary);
+    margin-bottom: 6px;
+    opacity: 0.7;
+}
+
+.nav-info-line {
+    font-size: 10px;
+    color: var(--primary);
+    margin: 4px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Navigation controls grid layout */
+.nav-controls-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: repeat(3, auto);
+    gap: 4px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.nav-coord-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--secondary);
+}
+
+.nav-coord-label {
+    opacity: 0.6;
+}
+
+.nav-coord-value {
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Navigation button variants */
+.btn-nav--minus {
+    justify-self: end;
+}
+
+.btn-nav--plus {
+    justify-self: start;
+}
+
 .btn-sell {
     margin-top: 15px;
     color: var(--primary);

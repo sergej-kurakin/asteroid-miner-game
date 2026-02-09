@@ -101,11 +101,20 @@
             <!-- Bottom half: navigation -->
             <div class="center-panel__half center-panel__half--bottom">
                 <div class="panel-title">Navigation</div>
-                <div class="navigation-section">
-                    <div id="nav-position" class="nav-position"></div>
-                    <div id="nav-cost" class="nav-cost"></div>
-                    <div id="nav-scan-info" class="nav-scan-info"></div>
-                    <div id="nav-controls" class="nav-controls"></div>
+
+                <!-- Section 1: Surrounding World Information -->
+                <div class="nav-section nav-section--world">
+                    <div class="nav-section-title">Surrounding World</div>
+                    <div id="nav-nearest-market" class="nav-info-line"></div>
+                    <div id="nav-nearest-power" class="nav-info-line"></div>
+                    <div id="nav-local-asteroids" class="nav-info-line"></div>
+                </div>
+
+                <!-- Section 2: Navigation Controls -->
+                <div class="nav-section nav-section--controls">
+                    <div class="nav-section-title">Navigation</div>
+                    <div id="nav-movement-cost" class="nav-cost"></div>
+                    <div id="nav-controls-grid" class="nav-controls-grid"></div>
                 </div>
             </div>
         </div>
