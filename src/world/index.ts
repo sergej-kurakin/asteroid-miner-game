@@ -1,5 +1,6 @@
-export type { Cell, CellPosition, World, IWorldGenerator } from './interfaces';
+export type { Cell, CellPosition, World, IWorldGenerator, IWorldService } from './interfaces';
 export { CellType, MiningConstraint } from './interfaces';
+export { WorldService } from './service';
 export {
     GRID_SIZE,
     POWER_STATION_PROXIMITY_RADIUS,
