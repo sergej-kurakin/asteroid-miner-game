@@ -133,7 +133,6 @@ function abandonAsteroid(): void {
     const result = asteroidsController.abandon();
 
     if (result.success) {
-        asteroidView.hideAsteroid();
         statusDisplay.setMessage('Asteroid Abandoned');
     }
 }
@@ -142,7 +141,6 @@ function scanAsteroid(): void {
     const result = asteroidsController.scan();
 
     if (result.success) {
-        asteroidView.showAsteroid();
         statusDisplay.setMessage('Asteroid Locked');
         persistence.save(gameState$.getState());
     } else if (result.error === 'insufficient_power') {
@@ -156,12 +154,11 @@ function scanAsteroid(): void {
 function handleMiningEvent(event: MiningEvent): void {
     switch (event.type) {
         case 'mining_started':
-            asteroidView.setMining(true);
             statusDisplay.setMessage('Mining in Progress...');
             break;
 
         case 'mining_progress':
-            asteroidView.setProgress(event.progress);
+            // Progress tracking removed - mining happens automatically
             break;
 
         case 'discovery':
@@ -169,7 +166,6 @@ function handleMiningEvent(event: MiningEvent): void {
             break;
 
         case 'mining_completed':
-            asteroidView.hideAsteroid();
             statusDisplay.setMessage('Mining Complete');
             persistence.save(gameState$.getState());
             break;

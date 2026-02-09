@@ -318,112 +318,35 @@ body::before {
     margin: 0 -20px; /* extend edge-to-edge across panel padding */
 }
 
-.asteroid-view {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    min-height: 0; /* allow shrinking within the half container */
-}
-
-.asteroid {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #666, #333 50%, #1a1a1a);
-    box-shadow:
-        inset -15px -15px 30px rgba(0,0,0,0.8),
-        inset 5px 5px 15px rgba(255,255,255,0.1),
-        0 0 30px rgba(100, 100, 100, 0.3);
-    display: none;
-    position: relative;
-}
-
-.asteroid.visible {
-    display: block;
-    animation: float 4s ease-in-out infinite;
-}
-
-.asteroid.mining {
-    animation: float 4s ease-in-out infinite, pulse-mining 0.5s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-@keyframes pulse-mining {
-    0%, 100% { box-shadow: inset -15px -15px 30px rgba(0,0,0,0.8), inset 5px 5px 15px rgba(255,255,255,0.1), 0 0 30px rgba(255, 136, 0, 0.3); }
-    50% { box-shadow: inset -15px -15px 30px rgba(0,0,0,0.8), inset 5px 5px 15px rgba(255,255,255,0.1), 0 0 50px rgba(255, 136, 0, 0.6); }
-}
-
+/* Placeholder displayed when no asteroid is scanned */
 .asteroid-placeholder {
     color: rgba(0, 255, 136, 0.3);
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-align: center;
+    padding: 40px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.mining-progress-container {
-    width: 80%;
-    margin-top: 30px;
-    display: none;
-}
-
-.mining-progress-container.visible {
-    display: block;
-}
-
-.mining-progress-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--accent);
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.mining-progress {
-    height: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.mining-progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), #ffaa44);
-    transition: width 0.05s linear;
-    box-shadow: 0 0 10px var(--accent);
-}
-
+/* Composition section containing the grid of asteroid data */
 .composition-section {
-    /* Internal top separator kept subtle — the main panel divider line separates halves */
-    border-top: 1px solid rgba(0, 255, 136, 0.3);
-    padding-top: 15px;
-    margin-top: 10px;
-}
-
-.composition-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
-    text-align: center;
-    color: var(--secondary);
+    flex: 1;
+    display: none; /* Hidden by default, shown when asteroid is present */
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 10px 0;
 }
 
 .composition-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+    padding: 0 5px;
 }
 
 .composition-item {

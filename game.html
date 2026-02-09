@@ -68,23 +68,16 @@
         <div class="panel center-panel">
             <!-- Top half: asteroid display and composition -->
             <div class="center-panel__half center-panel__half--top">
-                <div class="panel-title">Asteroid View</div>
-                <div class="asteroid-view">
-                    <div class="asteroid" id="asteroid"></div>
-                    <div class="asteroid-placeholder" id="asteroid-placeholder">
-                        No Asteroid Detected<br>
-                        <span style="font-size: 11px; opacity: 0.5;">Initiate scan to locate</span>
-                    </div>
-                    <div class="mining-progress-container" id="mining-progress-container">
-                        <div class="mining-progress-label">Mining Progress</div>
-                        <div class="mining-progress">
-                            <div class="mining-progress-fill" id="mining-progress-fill"></div>
-                        </div>
-                    </div>
+                <div class="panel-title">Asteroid Analysis</div>
+
+                <!-- Placeholder shown when no asteroid is present -->
+                <div class="asteroid-placeholder" id="asteroid-placeholder">
+                    No Asteroid Detected<br>
+                    <span style="font-size: 11px; opacity: 0.5;">Initiate scan to locate</span>
                 </div>
 
-                <div class="composition-section">
-                    <div class="composition-title">Asteroid Composition</div>
+                <!-- Composition grid (hidden when no asteroid) -->
+                <div class="composition-section" id="composition-section">
                     <div class="composition-grid" id="composition-grid">
                         <div class="composition-item" style="opacity: 0.3;">
                             <div class="composition-element">--</div>
